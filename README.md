@@ -1,13 +1,13 @@
 # ZaZemiata
 
-## Installation
+## Installation - SQLite
 
-1. git clone
+1. git clone 
 2. cd ZaZemiata
 3. npm install
-4. Set up .env file with the following content:
+4. Set up `.env` file with the following content:
 ```
-DATABASE_URL="MONOGODB_URL"
+DATABASE_URL="file:./dev.db"
 ```
 5. npm run prisma:migrate
 6. npm run build
