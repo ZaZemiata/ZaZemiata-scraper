@@ -1,0 +1,50 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+  seed            = "ts-node ./seeders/sourceSeeders.ts"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Source {
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  site_name                String
+  url                      String
+  worker_name              String   @default("default")
+  last_scrape_time         DateTime?
+  scrape_frequency_seconds Float    @default(0)
+  active                   Boolean  @default(true)
+  created_at               DateTime @default(now())
+
+  CrawlTasks CrawlTask[]
+  CrawledData CrawledData[]
+}
+
+model CrawlTask {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  status       Status   @default(PENDING)
+  created_at   DateTime @default(now())
+  completed_at DateTime?
+  error        String?
+
+  source   Source @relation(fields: [sourceId], references: [id])
+  sourceId String @db.ObjectId
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  ERROR
+}
+
+model CrawledData {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_at DateTime @default(now())
+  data       String
+  source     Source @relation(fields: [sourceId], references: [id])
+  sourceId   String @db.ObjectId
+}

@@ -1,0 +1,37 @@
+{
+  "name": "zazemiata-web-scraper",
+  "version": "1.0.0",
+  "main": "dist/app.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "scripts": {
+    "start": "node dist/app.js",
+    "build": "tsc",
+    "dev": "tsc && node dist/app.js",
+    "watch": "tsc -w",
+    "clean": "rm -rf dist",
+    "prisma:migrate": "npx prisma migrate dev --schema=src/db/prisma/schema.prisma",
+    "prisma:generate": "npx prisma generate --schema=src/db/prisma/schema.prisma",
+    "prisma:studio": "npx prisma studio --schema=src/db/prisma/schema.prisma",
+    "prisma:seed": "npx prisma db seed --schema=src/db/prisma"
+  },
+  "prisma": {
+    "seed": "ts-node ./src/db/prisma/seeders/sourceSeeder.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "dotenv": "^16.4.5",
+    "puppeteer": "^23.8.0",
+    "sqlite3": "^5.1.7",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/puppeteer": "^5.4.7",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
