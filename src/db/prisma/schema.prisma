@@ -5,12 +5,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model Source {
-  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                       String   @id @default(uuid())
   site_name                String
   url                      String
   worker_name              String   @default("default")
@@ -24,27 +24,20 @@ model Source {
 }
 
 model CrawlTask {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  status       Status   @default(PENDING)
+  id           String   @id @default(uuid())
+  status       String   @default("PENDING")
   created_at   DateTime @default(now())
   completed_at DateTime?
   error        String?
 
   source   Source @relation(fields: [sourceId], references: [id])
-  sourceId String @db.ObjectId
-}
-
-enum Status {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  ERROR
+  sourceId String
 }
 
 model CrawledData {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(uuid())
   created_at DateTime @default(now())
   data       String
   source     Source @relation(fields: [sourceId], references: [id])
-  sourceId   String @db.ObjectId
+  sourceId   String
 }
