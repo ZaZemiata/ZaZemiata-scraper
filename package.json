@@ -15,7 +15,8 @@
     "prisma:migrate": "npx prisma migrate dev --schema=src/db/prisma/schema.prisma",
     "prisma:generate": "npx prisma generate --schema=src/db/prisma/schema.prisma",
     "prisma:studio": "npx prisma studio --schema=src/db/prisma/schema.prisma",
-    "prisma:seed": "npx prisma db seed --schema=src/db/prisma"
+    "prisma:seed": "npx prisma db seed --schema=src/db/prisma",
+    "prisma:push": "npx prisma db push --schema=src/db/prisma/schema.prisma"
   },
   "prisma": {
     "seed": "ts-node ./src/db/prisma/seeders/sourceSeeder.ts"
