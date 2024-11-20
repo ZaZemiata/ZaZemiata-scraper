@@ -7,7 +7,7 @@
 3. npm install
 4. Set up `.env` file with the following content:
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="<Here goes your postgres connection string!>"
 ```
 5. npm run prisma:generate
 6. npm run prisma:migrate
