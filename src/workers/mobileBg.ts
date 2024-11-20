@@ -1,5 +1,5 @@
 /**
- * RandomNames
+ * MobileBg
  * 
  * @module mobileBg.ts
  * @author Daniel Dimitrov <danieldimitrov2304@gmail.com>

@@ -1,16 +1,21 @@
+// Prisma Client
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["prismaSchemaFolder"]
   seed            = "ts-node ./seeders/sourceSeeders.ts"
 }
 
+// Database connection
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Define the schema
+
+// Source model
 model Source {
-  id                       String   @id @default(uuid())
+  id                       BigInt    @id @default(autoincrement()) @db.BigInt
   site_name                String
   url                      String
   worker_name              String   @default("default")
@@ -23,21 +28,32 @@ model Source {
   CrawledData CrawledData[]
 }
 
+// CrawlTask model
 model CrawlTask {
-  id           String   @id @default(uuid())
-  status       String   @default("PENDING")
-  created_at   DateTime @default(now())
+  id           BigInt            @id @default(autoincrement()) @db.BigInt
+  status       CrawlTaskStatus   @default(PENDING)
+  created_at   DateTime          @default(now())
   completed_at DateTime?
   error        String?
 
   source   Source @relation(fields: [sourceId], references: [id])
-  sourceId String
+  sourceId BigInt
 }
 
+// Enum for CrawlTask status
+enum CrawlTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// CrawledData model
 model CrawledData {
-  id         String   @id @default(uuid())
+  id         BigInt   @id @default(autoincrement()) @db.BigInt
   created_at DateTime @default(now())
   data       String
-  source     Source @relation(fields: [sourceId], references: [id])
-  sourceId   String
+
+  source     Source   @relation(fields: [sourceId], references: [id])
+  sourceId   BigInt
 }

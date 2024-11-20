@@ -14,6 +14,7 @@ import prisma from './db/prisma/prisma';
 import WorkerData from './types/workerData';
 import WorkerMessage from './types/workerMessage';
 import logger from './utils/logger';
+import { CrawlTaskStatus } from '@prisma/client';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -48,7 +49,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
         // Define worker data
         const workerData: WorkerData = {
             url: source.url,
-            sourceId: source.id
+            sourceId: Number(source.id)
         };
 
         // Create new worker thread
@@ -65,7 +66,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
             // Update task status to in-progress
             await prisma.crawlTask.update({
                 where: { id: task.id },
-                data: { status: 'IN_PROGRESS' }
+                data: { status: CrawlTaskStatus.IN_PROGRESS }
             });
 
         });
@@ -80,7 +81,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 await prisma.crawledData.create({
                     data: {
                         data: message.data?.text as string,  // Convert data to string
-                        sourceId: message.data?.sourceId as string,  // Convert data to string
+                        sourceId: Number(message.data?.sourceId),  // Convert data to string
                     }
                 });
 
@@ -91,7 +92,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 await prisma.crawlTask.update({
                     where: { id: task.id },
                     data: {
-                        status: 'COMPLETED',
+                        status: CrawlTaskStatus.COMPLETED,
                         completed_at: new Date()
                     }
                 });
@@ -105,7 +106,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 // Update task status to error
                 await prisma.crawlTask.update({
                     where: { id: task.id },
-                    data: { status: 'ERROR', error: message.error }
+                    data: { status: CrawlTaskStatus.FAILED, error: message.error }
                 });
             }
 

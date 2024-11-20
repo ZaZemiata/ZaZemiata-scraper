@@ -6,8 +6,8 @@
  * @description This module is responsible for assigning crawl tasks for the bot.
  */
 
-
 // Import dependencies
+import { CrawlTaskStatus } from "@prisma/client";
 import prisma from "./db/prisma/prisma";
 import logger from "./utils/logger";
 
@@ -36,7 +36,7 @@ export const assignCrawlTasks = async (): Promise<void> => {
             // Create new crawl task
             await prisma.crawlTask.create({
                 data: {
-                    status: 'PENDING',
+                    status: CrawlTaskStatus.PENDING,
                     source: { connect: { id: source.id } },
                     created_at: now
                 }
