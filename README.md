@@ -1,6 +1,6 @@
 # ZaZemiata
 
-## Installation - SQLite
+## Installation - PostgreSQL
 
 1. git clone 
 2. cd ZaZemiata
