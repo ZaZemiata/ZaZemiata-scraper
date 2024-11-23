@@ -86,7 +86,7 @@ new class YouTube extends BaseWorker {
             };
 
             // Send message
-            parentPort?.postMessage(message);
+            await this.publishMessage(message);
 
         }
 
@@ -97,7 +97,7 @@ new class YouTube extends BaseWorker {
             const message: WorkerMessage = { status: 'error', error: (error as Error).message };
 
             // Send message
-            parentPort?.postMessage(message);
+            await this.publishMessage(message);
         }
 
         // Exit worker
