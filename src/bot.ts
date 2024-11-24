@@ -109,8 +109,6 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 });
             }
 
-            // Decrement active worker count
-            activeWorkers--;
         });
 
         // Listen for worker exit
