@@ -16,3 +16,6 @@ DATABASE_URL="<Here goes your postgres connection string!>"
 
 ## Studio
 `npm run prisma:studio`
+
+
+dadsadas
