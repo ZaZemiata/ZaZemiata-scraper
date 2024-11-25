@@ -18,7 +18,8 @@
     "prisma:seed": "npx prisma db seed --schema=src/db/prisma"
   },
   "prisma": {
-    "seed": "ts-node ./src/db/prisma/seeders/sourceSeeder.ts"
+    "seed": "ts-node ./src/db/prisma/seeders/sourceSeeder.ts",
+    "crawl": "ts-node ./src/db/prisma/seeders/crawledDataSeeder.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
