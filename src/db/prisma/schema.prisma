@@ -14,3 +14,87 @@ datasource db {
 // Define the schema
 
 // Source model
+model Sources {
+  id                       BigInt    @id @default(autoincrement())
+  site_name                String
+  worker_name              String
+  last_scrape_time         DateTime?
+  scrape_frequency_seconds Float
+  active                   Boolean
+  created_at               DateTime  @default(now())
+
+  SourceUrls SourceUrls[]
+  Settings   Settings[]
+}
+
+// Source urls model
+model SourceUrls {
+  id         BigInt   @id @default(autoincrement())
+  url        String
+  active     Boolean
+  created_at DateTime @default(now())
+
+  source_id   BigInt
+  Sources     Sources       @relation(fields: [source_id], references: [id])
+  CrawledData CrawledData[]
+}
+
+// Crawl Tasks model
+model CrawlTasks {
+  id           BigInt          @id @default(autoincrement())
+  status       CrawlTaskStatus @default(PENDING)
+  completed_at DateTime?
+  error        String?
+  created_at   DateTime        @default(now())
+}
+
+// Crawled Data model
+model CrawledData {
+  id         BigInt   @id @default(autoincrement())
+  text       String
+  Contractor String
+  date       DateTime
+  created_at DateTime @default(now())
+
+  source_url BigInt
+  SourceUrls SourceUrls @relation(fields: [source_url], references: [id])
+}
+
+// Settings model
+model Settings {
+  id         BigInt   @id @default(autoincrement())
+  name       String
+  value      String
+  active     Boolean
+  created_at DateTime @default(now())
+
+  source_id BigInt
+  Sources   Sources @relation(fields: [source_id], references: [id])
+}
+
+//Keywords model
+model KeyWords {
+  id         BigInt   @id @default(autoincrement())
+  word       String
+  priority   Priority @default(MEDIUM)
+  active     Boolean
+  created_at DateTime @default(now())
+}
+
+// Enum definitions
+
+// Crawl Task Status enum
+enum CrawlTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// Priority enum
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
