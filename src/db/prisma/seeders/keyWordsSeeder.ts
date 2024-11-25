@@ -10,41 +10,36 @@ enum Priority {
 }
 
 async function seedKeyWords() {
-  // Mock data for the KeyWords table using the Priority enum
-  const mockKeyWords = [
-    { word: 'Environment', priority: Priority.HIGH, active: true },
-    { word: 'Pollution', priority: Priority.CRITICAL, active: true },
-    { word: 'Climate Change', priority: Priority.HIGH, active: true },
-    { word: 'Water Conservation', priority: Priority.MEDIUM, active: true },
-    { word: 'Air Quality', priority: Priority.HIGH, active: true },
-    { word: 'Sustainability', priority: Priority.MEDIUM, active: true },
-    { word: 'Waste Management', priority: Priority.MEDIUM, active: true },
-    { word: 'Biodiversity', priority: Priority.LOW, active: true },
-    { word: 'Recycling', priority: Priority.HIGH, active: true },
-    { word: 'Green Energy', priority: Priority.CRITICAL, active: true },
-  ];
 
-  // Insert mock data into the KeyWords table
-  for (const keyword of mockKeyWords) {
-    await prisma.keyWords.create({
-      data: keyword,
+    // Delete all records from the KeyWords table
+    await prisma.keyWords.deleteMany();
+
+    // Insert new records into the KeyWords table
+    await prisma.keyWords.createMany({
+        data: [
+            { word: 'Environment', priority: Priority.HIGH, active: true, created_at: new Date() },
+            { word: 'Pollution', priority: Priority.CRITICAL, active: true, created_at: new Date() },
+            { word: 'Climate Change', priority: Priority.HIGH, active: true, created_at: new Date() },
+            { word: 'Water Conservation', priority: Priority.MEDIUM, active: true, created_at: new Date() },
+            { word: 'Air Quality', priority: Priority.HIGH, active: true, created_at: new Date() },
+            { word: 'Sustainability', priority: Priority.MEDIUM, active: true, created_at: new Date() },
+            { word: 'Waste Management', priority: Priority.MEDIUM, active: true, created_at: new Date() },
+            { word: 'Biodiversity', priority: Priority.LOW, active: true, created_at: new Date() },
+            { word: 'Recycling', priority: Priority.HIGH, active: true, created_at: new Date() },
+            { word: 'Green Energy', priority: Priority.CRITICAL, active: true, created_at: new Date() },
+        ]
     });
-  }
 
-  logger.info('KeyWords seeded successfully!');
+    logger.info('KeyWords seeded successfully!');
 }
 
-async function main() {
-  try {
-    await seedKeyWords();
-  } catch (error) {
+// Seed key words
+seedKeyWords().catch((error) => {
+
     // Log error
     logger.error('Error seeding key words:', error);
-  } finally {
-    // Disconnect from the database
-    await prisma.$disconnect();
-  }
-}
+}).finally(() => {
 
-// Run the seeder
-main();
+    // Disconnect from the database
+    prisma.$disconnect();
+});
