@@ -6,7 +6,7 @@ CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
 
 -- CreateTable
 CREATE TABLE "Sources" (
-    "id" BIGSERIAL NOT NULL,
+    "id" BIGINT NOT NULL,
     "site_name" TEXT NOT NULL,
     "worker_name" TEXT NOT NULL,
     "last_scrape_time" TIMESTAMP(3),
@@ -19,7 +19,7 @@ CREATE TABLE "Sources" (
 
 -- CreateTable
 CREATE TABLE "SourceUrls" (
-    "id" BIGSERIAL NOT NULL,
+    "id" BIGINT NOT NULL,
     "url" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,7 +53,7 @@ CREATE TABLE "CrawledData" (
 
 -- CreateTable
 CREATE TABLE "Settings" (
-    "id" BIGSERIAL NOT NULL,
+    "id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
     "value" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL,
