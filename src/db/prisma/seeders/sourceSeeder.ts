@@ -6,6 +6,7 @@ async function seedSources() {
     // Delete all records from sources table
     await prisma.sources.deleteMany();
 
+    // Seed the database with new records
     await prisma.sources.createMany({
         data: [
             {
