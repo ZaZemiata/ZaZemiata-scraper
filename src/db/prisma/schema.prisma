@@ -15,7 +15,7 @@ datasource db {
 
 // Source model
 model Sources {
-  id                       BigInt    @id @default(autoincrement())
+  id                       BigInt    @id
   site_name                String
   worker_name              String
   last_scrape_time         DateTime?
@@ -29,7 +29,7 @@ model Sources {
 
 // Source urls model
 model SourceUrls {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt   @id
   url        String
   active     Boolean
   created_at DateTime @default(now())
@@ -62,7 +62,7 @@ model CrawledData {
 
 // Settings model
 model Settings {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt   @id
   name       String
   value      String
   active     Boolean
