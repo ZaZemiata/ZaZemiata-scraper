@@ -10,6 +10,7 @@ enum Priority {
 }
 
 async function seedKeyWords() {
+
   // Delete all records from the KeyWords table
   await prisma.keyWords.deleteMany();
 
@@ -85,10 +86,12 @@ async function seedKeyWords() {
 // Seed key words
 seedKeyWords()
   .catch((error) => {
+
     // Log error
     logger.error("Error seeding key words:", error);
   })
   .finally(() => {
+    
     // Disconnect from the database
     prisma.$disconnect();
   });
