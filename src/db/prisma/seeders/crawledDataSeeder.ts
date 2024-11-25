@@ -7,7 +7,7 @@ async function crawledDataSeeder() {
     await prisma.crawledData.deleteMany();
 
     // Add crawled data into the database
-    await prisma.source.createMany({
+    await prisma.crawledData.createMany({
         data: [
             {
                 text: "В РИОСВ-Русе е внесено уведомление с вх. № АО-5618/06.11.2024 г. за инвестиционно предложение",
