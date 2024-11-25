@@ -2,7 +2,7 @@ import prisma from "../prisma";
 import logger from "../../../utils/logger";
 
 async function crawledDataSeeder() {
-    
+
     // Delete all records from crawled data table
     await prisma.crawledData.deleteMany();
 
@@ -57,15 +57,13 @@ async function crawledDataSeeder() {
     });
 }
 
-// Seed sources
-crawledDataSeeder()
-    .catch((error) => {
+// Seed crawled data
+crawledDataSeeder().catch((error) => {
 
-        // Log error
-        logger.error("Error seeding sources:", error);
-    })
-    .finally(() => {
+    // Log error
+    logger.error("Error seeding crawled data:", error);
+}).finally(() => {
 
-        // Disconnect from database
-        prisma.$disconnect();
-    });
+    // Disconnect from database
+    prisma.$disconnect();
+});
