@@ -1,21 +1,45 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
 
-export default async function seedSources() {
+// Seeder class for the sources table
+export default class SourceSeeder {
 
-    // Delete all records from sources table
-    await prisma.sources.deleteMany();
+    // Drops all records from the sources table
+    async drop() {
 
-    // Seed the database with new records
-    await prisma.sources.createMany({
-        data: [
+        // Prepare for errors
+        try {
+
+            // Drop all records from the sources table
+            await prisma.sources.deleteMany();
+
+            // Log success
+            logger.info("All records in the sources table have been deleted.");
+        } 
+        
+        // Catch errors
+        catch (error) {
+
+            // Log the error
+            logger.error("Error dropping records from sources table:", error);
+
+            // Rethrow the error
+            throw error;
+        }
+    }
+
+    // Seeds the sources table with new records
+    async seed() {
+
+        // Prepare data
+        const data = [
             {
                 id: 100,
                 site_name: 'Ruse',
                 worker_name: 'Ruse',
                 scrape_frequency_seconds: 5,
                 active: true,
-                created_at: new Date()
+                created_at: new Date(),
             },
             {
                 id: 200,
@@ -23,7 +47,7 @@ export default async function seedSources() {
                 worker_name: 'Sofia',
                 scrape_frequency_seconds: 5,
                 active: true,
-                created_at: new Date()
+                created_at: new Date(),
             },
             {
                 id: 300,
@@ -31,19 +55,28 @@ export default async function seedSources() {
                 worker_name: 'Plovdiv',
                 scrape_frequency_seconds: 5,
                 active: true,
-                created_at: new Date()
-            }
-        ]
-    });
+                created_at: new Date(),
+            },
+        ];
+
+        // Prepare for errors
+        try {
+
+            // Seed the sources table
+            await prisma.sources.createMany({ data });
+
+            // Log success
+            logger.info("Sources table seeded successfully.");
+        } 
+        
+        // Catch errors
+        catch (error) {
+
+            // Log the error
+            logger.error("Error seeding sources table:", error);
+
+            // Rethrow the error
+            throw error;
+        }
+    }
 }
-    
-// Seed sources
-seedSources().catch((error) => {
-
-    // Log error
-    logger.error('Error seeding sources:', error);
-}).finally(() => {
-
-    // Disconnect from database
-    prisma.$disconnect();
-})
