@@ -2,7 +2,7 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["prismaSchemaFolder"]
-  seed            = "ts-node ./seeders/sourceSeeders.ts"
+  seed            = "ts-node ./seeders/seed.ts"
 }
 
 // Database connection
