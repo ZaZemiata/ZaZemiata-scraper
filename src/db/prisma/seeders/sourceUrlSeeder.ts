@@ -2,7 +2,7 @@ import prisma from "../prisma";
 import logger from "../../../utils/logger";
 import { SOURCE_IDS } from "../constants";
 
-async function seedSourceUrls() {
+export default async function seedSourceUrls() {
 
     // Delete all records from source urls table
     await prisma.sourceUrls.deleteMany();

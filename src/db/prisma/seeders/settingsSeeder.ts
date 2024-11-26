@@ -1,7 +1,7 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
 
-async function seedSettings() {
+export default async function seedSettings() {
 
     // Delete all records from the Settings table
     await prisma.settings.deleteMany();
