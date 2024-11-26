@@ -52,7 +52,7 @@ model CrawlTasks {
 model CrawledData {
   id         BigInt   @id @default(autoincrement())
   text       String
-  Contractor String
+  contractor String
   date       DateTime
   created_at DateTime @default(now())
 

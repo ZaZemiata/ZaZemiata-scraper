@@ -9,14 +9,38 @@ enum Priority {
     CRITICAL = "CRITICAL",
 }
 
-export default async function seedKeyWords() {
+// Seeder class for the keyWords table
+export default class KeyWordSeeder {
 
-    // Delete all records from the KeyWords table
-    await prisma.keyWords.deleteMany();
+     //Drops all records from the keyWords table
+    async drop() {
 
-    // Insert new records into the KeyWords table
-    await prisma.keyWords.createMany({
-        data: [
+        // Prepare for errors
+        try {
+
+            // Drop all records from the keyWords table
+            await prisma.keyWords.deleteMany();
+
+            // Log success
+            logger.info("All records in the keyWords table have been deleted.");
+        } 
+        
+        // Catch errors
+        catch (error) {
+
+            // Log the error
+            logger.error("Error dropping records from keyWords table:", error);
+
+            // Rethrow the error
+            throw error;
+        }
+    }
+
+    // Seeds the keyWords table with new records
+    async seed() {
+
+        // Prepare data
+        const data = [
             {
                 word: "Environment",
                 priority: Priority.HIGH,
@@ -77,19 +101,25 @@ export default async function seedKeyWords() {
                 active: true,
                 created_at: new Date(),
             },
-        ],
-    });
+        ];
 
-    logger.info("KeyWords seeded successfully!");
+        try {
+
+            // Seed the keyWords table with the prepared data
+            await prisma.keyWords.createMany({ data });
+
+            // Log success
+            logger.info("keyWords table seeded successfully.");
+        } 
+        
+        // Catch errors
+        catch (error) {
+
+            // Log the error
+            logger.error("Error seeding keyWords table:", error);
+
+            // Rethrow the error
+            throw error;
+        }
+    }
 }
-
-// Seed key words
-seedKeyWords().catch((error) => {
-
-    // Log error
-    logger.error("Error seeding key words:", error);
-}).finally(() => {
-
-    // Disconnect from the database
-    prisma.$disconnect();
-});
