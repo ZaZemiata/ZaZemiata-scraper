@@ -1,7 +1,7 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
 
-async function seedSources() {
+export default async function seedSources() {
 
     // Delete all records from sources table
     await prisma.sources.deleteMany();

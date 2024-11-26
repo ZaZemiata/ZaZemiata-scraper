@@ -9,7 +9,7 @@ enum Priority {
     CRITICAL = "CRITICAL",
 }
 
-async function seedKeyWords() {
+export default async function seedKeyWords() {
 
     // Delete all records from the KeyWords table
     await prisma.keyWords.deleteMany();

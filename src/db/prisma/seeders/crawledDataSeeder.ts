@@ -1,7 +1,7 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
 
-async function crawledDataSeeder() {
+export default async function crawledDataSeeder() {
 
     // Delete all records from crawled data table
     await prisma.crawledData.deleteMany();
