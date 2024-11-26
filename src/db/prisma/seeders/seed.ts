@@ -40,8 +40,4 @@ async function seed() {
 }
 
 // Run the seed function
-seed().catch((error) => {
-    logger.error("Unexpected error in seeding process:", error);
-    prisma.$disconnect();
-    process.exit(1);
-});
+seed();
