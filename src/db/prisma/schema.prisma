@@ -60,8 +60,8 @@ model CrawledData {
   date       DateTime
   created_at DateTime @default(now())
 
-  source_url BigInt
-  SourceUrls SourceUrls @relation(fields: [source_url], references: [id])
+  source_url_id BigInt
+  SourceUrls SourceUrls @relation(fields: [source_url_id], references: [id])
 }
 
 // Settings model
