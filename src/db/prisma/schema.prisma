@@ -25,6 +25,7 @@ model Sources {
 
   SourceUrls SourceUrls[]
   Settings   Settings[]
+  CrawlTasks CrawlTasks[]
 }
 
 // Source urls model
@@ -46,6 +47,9 @@ model CrawlTasks {
   completed_at DateTime?
   error        String?
   created_at   DateTime        @default(now())
+
+  source_id BigInt
+  Sources   Sources @relation(fields: [source_id], references: [id])
 }
 
 // Crawled Data model
