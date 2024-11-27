@@ -13,7 +13,7 @@ import { Worker } from 'worker_threads';
 import prisma from './db/prisma/prisma';
 import logger from './utils/logger';
 import WorkerData from './types/workerData';
-import WorkerMessage from './types/workerMessage';
+import { CrawlTaskStatus } from '@prisma/client'; 
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -28,7 +28,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
 
     // Fetch pending tasks
     const pendingTasks = await prisma.crawlTasks.findMany({
-        where: { status: 'PENDING' },
+        where: { status: CrawlTaskStatus.PENDING },
         include: {
             Sources: {
                 include: {
@@ -84,12 +84,12 @@ export const crawlPendingTasks = async (): Promise<void> => {
         worker.on('online', async () => {
 
             // Log message
-            await logger.info(`Crawling task for ${source.site_name} with id ${source.id}...`);
+            logger.info(`Crawling task for ${source.site_name} with id ${source.id}...`);
 
             // Update task status to in-progress
             await prisma.crawlTasks.update({
                 where: { id: task.id },
-                data: { status: 'IN_PROGRESS' }
+                data: { status: CrawlTaskStatus.IN_PROGRESS },
             });
 
         });
