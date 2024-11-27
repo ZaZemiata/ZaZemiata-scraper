@@ -1,4 +1,4 @@
 export default interface WorkerData {
-    urls: string[];
-    sourceId: BigInt;
+    url: string;
+    sourceUrlId: BigInt;
 }
