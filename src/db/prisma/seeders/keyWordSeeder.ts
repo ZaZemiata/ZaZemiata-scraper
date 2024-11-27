@@ -42,67 +42,66 @@ export default class KeyWordSeeder {
         // Prepare data
         const data = [
             {
-                word: "Environment",
+                word: "Отпадъци",
                 priority: Priority.HIGH,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Pollution",
+                word: "Алтернативно гориво, Алтернативни горива",
                 priority: Priority.CRITICAL,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Climate Change",
+                word: "РДФ, RDF",
                 priority: Priority.HIGH,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Water Conservation",
+                word: "Инсинератор",
                 priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Air Quality",
-                priority: Priority.HIGH,
-                active: true,
-                created_at: new Date(),
-            },
-            {
-                word: "Sustainability",
+                word: "Изгаряне",
                 priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Waste Management",
-                priority: Priority.MEDIUM,
-                active: true,
-                created_at: new Date(),
-            },
-            {
-                word: "Biodiversity",
+                word: "Пиролиза",
                 priority: Priority.LOW,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Recycling",
+                word: "Газификация",
                 priority: Priority.HIGH,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Green Energy",
+                word: "Плазма",
                 priority: Priority.CRITICAL,
                 active: true,
                 created_at: new Date(),
             },
+            {
+                word: "Химическо рециклиране",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Термично третиране",
+                priority: Priority.LOW,
+                active: true,
+                created_at: new Date(),
+            },
         ];
-
         try {
 
             // Seed the keyWords table with the prepared data
