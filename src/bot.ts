@@ -13,6 +13,7 @@ import { Worker } from 'worker_threads';
 import prisma from './db/prisma/prisma';
 import logger from './utils/logger';
 import WorkerData from './types/workerData';
+import WorkerMessage from './types/workerMessage';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -67,14 +68,15 @@ export const crawlPendingTasks = async (): Promise<void> => {
         }
 
         // Prepare worker data
-        const workerData: WorkerData = {
-            urls: sourceUrls.map((sourceUrl) => sourceUrl.url), // Array of URLs
-            sourceId: source.id,                               // Source ID
-        };
+        const workerData: WorkerData[] = sourceUrls.map((sourceUrl) => ({
+            sourceUrlId: sourceUrl.id,
+            url: sourceUrl.url,
+        }));
+
 
         // Create new worker thread
         const worker = new Worker(path.resolve(__dirname, `workers/${source.worker_name}.js`), { workerData });
-        
+
         // Send message to the worker
         worker.postMessage({ command: 'run' });
 
@@ -91,6 +93,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
             });
 
         });
+
     }
 
 }
