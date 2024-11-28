@@ -9,86 +9,61 @@
 // Import dependencies
 import prisma from "./db/prisma/prisma";
 import logger from "./utils/logger";
-
-// Declare and define constant for crawl task status.
-// Better to move it but where to? Suggestion db/prisma/constants - file constants.ts
-const CRAWL_TASK_STATUS = {
-    PENDING: "PENDING",
-    IN_PROGRESS: "IN_PROGRESS",
-    COMPLETED: "COMPLETED",
-    FAILED: "FAILED",
-};
+import { CrawlTaskStatus } from "@prisma/client";
 
 export const assignCrawlTasks = async (): Promise<void> => {
 
-    // Fetch all sources
-    const sources = await prisma.sources.findMany({ where: { active: true } });
+    // Prepare for errors
+    try {
+        
+        // Fetch all sources
+        const sources = await prisma.sources.findMany({ where: { active: true } });
 
-    // Loop through each source and assign new crawl task if required
-    for (const source of sources) {
+        // Loop through each source and assign new crawl task if required
+        for (const source of sources) {
 
-        // Get current time
-        const now = new Date();
+            // Get current time
+            const now = new Date();
 
-        // Calculate time since last scrape
-        const timeSinceLastScrape = source.last_scrape_time
-            ? (now.getTime() - new Date(source.last_scrape_time).getTime()) /
-              1000
-            : Infinity;
+            // Calculate time since last scrape
+            const timeSinceLastScrape = source.last_scrape_time
+                ? (now.getTime() - new Date(source.last_scrape_time).getTime()) / 1000
+                : Infinity;
 
-        // Check if it's time to scrape again
-        if (timeSinceLastScrape >= source.scrape_frequency_seconds) {
+            // Check if it's time to scrape again
+            if (timeSinceLastScrape >= source.scrape_frequency_seconds) {
 
-            // Check if crawl task is created for current source
-            const getTask = await prisma.crawlTasks.findFirst({
-                where: {
-                    source: {
-                        id: source.id,
+                // Get crawl tasks for current source with status either pending or in progress
+                const getTask = await prisma.crawlTasks.findFirst({
+                    where: {
+                        status: CrawlTaskStatus.PENDING || CrawlTaskStatus.IN_PROGRESS,
+                        source_id: source.id,
                     },
-                },
-            });
+                });
 
-            // If task is found
-            if (getTask) {
-
-                // Check if status is NOT pending or in-progress and create new one
-                if (
-                    getTask.status !== CRAWL_TASK_STATUS.PENDING ||
-                    getTask.status !== CRAWL_TASK_STATUS.IN_PROGRESS
-                ) {
+                // If task is found with that source id
+                if (!getTask) {
 
                     // Create new task
                     await prisma.crawlTasks.create({
                         data: {
-                            status: "PENDING",
-                            source: { connect: { id: source.id } },
+                            status: CrawlTaskStatus.PENDING,
+                            source_id: source.id,
                             created_at: now,
                         },
                     });
 
-                    // Log message
+                    // Log create message
                     logger.info(`Assigning new crawl task for ${source.site_name}`);
-                } else {
-                    
-                    // Log message
-                    logger.info(`A task is already in progress or pending for ${source.site_name}`);
                 }
             }
-
-            if (!getTask) {
-
-                // Create new task
-                await prisma.crawlTasks.create({
-                    data: {
-                        status: "PENDING",
-                        source: { connect: { id: source.id } },
-                        created_at: now,
-                    },
-                });
-
-                // Log message
-                logger.info(`Assigning new crawl task for ${source.site_name}`);
-            }
         }
+    }
+    
+    // Catch errors
+    catch (error) {
+
+        // Log the error
+        logger.error("Error assigning crawl tasks:", error);
     }
 };
