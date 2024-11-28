@@ -2,20 +2,20 @@
 import { createLogger, format, transports } from 'winston';
 
 // Determine if logging is enabled from .env
-const isLoggingEnabled = process.env.ENABLE_LOGS === 'true';
+const isLoggingEnabled = process.env.ENABLE_LOGS === '1';
 
 // Define log format
 const logFormat = format.combine(
-  format.colorize(),
-  format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  format.printf(({ level, message, timestamp }) => `${timestamp} [${level}]: ${message}`)
+    format.colorize(),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.printf(({ level, message, timestamp }) => `${timestamp} [${level}]: ${message}`)
 );
 
 // Create the logger
 const logger = createLogger({
-  level: isLoggingEnabled ? 'info' : 'silent', // Disable logs by setting level to 'silent'
-  format: logFormat,
-  transports: [new transports.Console()],
+    level: isLoggingEnabled ? 'info' : 'silent', // Disable logs by setting level to 'silent'
+    format: logFormat,
+    transports: [new transports.Console()],
 });
 
 // Export the logger
