@@ -13,7 +13,8 @@ import { Worker } from 'worker_threads';
 import prisma from './db/prisma/prisma';
 import logger from './utils/logger';
 import WorkerData from './types/workerData';
-import { CrawlTaskStatus } from '@prisma/client'; 
+import { CrawlTaskStatus } from '@prisma/client';
+import WorkerMessage from './types/workerMessage';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -91,6 +92,51 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 where: { id: task.id },
                 data: { status: CrawlTaskStatus.IN_PROGRESS },
             });
+
+        });
+
+        // Listen for messages from worker
+        worker.on('message', async (message: WorkerMessage) => {
+
+            // Receive completion message
+            if (message.status === 'completed' && Array.isArray(message.data)) {
+
+                // Save crawled data
+                await prisma.crawledData.createMany({
+
+                    // Loop though every entry of the message data
+                    data: message.data.map((crawledDataEntry) => ({
+                        text: crawledDataEntry.text as string,  // Ensure the type is string
+                        source_url_id: crawledDataEntry.sourceUrlId as bigint,  // Ensure the type is  bigInt
+                        date: crawledDataEntry.date as Date, // Ensure the type is Date
+                        contractor: crawledDataEntry.contractor as string, // Ensure the type is string
+                    }))
+                });
+
+                // Log message
+                logger.info(`Task completed for ${source.site_name} with id ${source.id}.`, message.data);
+
+                // Update task status to completed
+                await prisma.crawlTasks.update({
+                    where: { id: task.id },
+                    data: {
+                        status: CrawlTaskStatus.COMPLETED,
+                        completed_at: new Date()
+                    }
+                });
+
+                // Receive error message
+            } else if (message.status === 'error') {
+
+                // Log error
+                logger.error(`Error in task for ${source.site_name} with id ${source.id}.`, message.error);
+
+                // Update task status to error
+                await prisma.crawlTasks.update({
+                    where: { id: task.id },
+                    data: { status: CrawlTaskStatus.FAILED, error: message.error }
+                });
+            }
 
         });
 
