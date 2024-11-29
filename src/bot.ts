@@ -140,6 +140,17 @@ export const crawlPendingTasks = async (): Promise<void> => {
 
         });
 
+        // Listen for worker exit
+        worker.on('exit', async (code) => {
+
+            // Decrement active worker count
+            activeWorkers--;
+
+            // Log message if worker didn't exit properly
+            if (code !== 0) logger.error(`Worker stopped with exit code ${code}`);
+
+        });
+
     }
 
 }
