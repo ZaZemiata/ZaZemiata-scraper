@@ -15,6 +15,7 @@ import logger from './utils/logger';
 import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
+import isWorkerMessageDataCrawledDataArray from './utils/typesUtils/isWorkerMessageDataCrawledDataArray';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -84,6 +85,9 @@ export const crawlPendingTasks = async (): Promise<void> => {
         // Worker started
         worker.on('online', async () => {
 
+            // Increment worker count
+            activeWorkers++;
+
             // Log message
             logger.info(`Crawling task for ${source.site_name} with id ${source.id}...`);
 
@@ -98,32 +102,37 @@ export const crawlPendingTasks = async (): Promise<void> => {
         // Listen for messages from worker
         worker.on('message', async (message: WorkerMessage) => {
 
-            // Receive completion message
-            if (message.status === 'completed' && Array.isArray(message.data)) {
+            // Check if the message indicates a completed task and contains valid crawled data
+            if (message.status === 'completed' && isWorkerMessageDataCrawledDataArray(message.data)) {
 
-                // Save crawled data
-                await prisma.crawledData.createMany({
+                // Explicitly cast after validation
+                const crawledDataEntries = message.data as CrawledDataEntry[];
 
-                    // Loop though every entry of the message data
-                    data: message.data.map((crawledDataEntry) => ({
-                        text: crawledDataEntry.text as string,  // Ensure the type is string
-                        source_url_id: crawledDataEntry.sourceUrlId as bigint,  // Ensure the type is  bigInt
-                        date: crawledDataEntry.date as Date, // Ensure the type is Date
-                        contractor: crawledDataEntry.contractor as string, // Ensure the type is string
-                    }))
-                });
+                // Perform database operations in a single transaction
+                await prisma.$transaction([
+
+                    // Save crawled data
+                    prisma.crawledData.createMany({
+                        data: crawledDataEntries.map((entry) => ({
+                            text: entry.text,
+                            source_url_id: entry.sourceUrlId,
+                            date: entry.date,
+                            contractor: entry.contractor,
+                        })),
+                    }),
+
+                    // Update task status to completed
+                    prisma.crawlTasks.update({
+                        where: { id: task.id },
+                        data: {
+                            status: CrawlTaskStatus.COMPLETED,
+                            completed_at: new Date(),
+                        },
+                    }),
+                ]);
 
                 // Log message
                 logger.info(`Task completed for ${source.site_name} with id ${source.id}.`, message.data);
-
-                // Update task status to completed
-                await prisma.crawlTasks.update({
-                    where: { id: task.id },
-                    data: {
-                        status: CrawlTaskStatus.COMPLETED,
-                        completed_at: new Date()
-                    }
-                });
 
                 // Receive error message
             } else if (message.status === 'error') {
