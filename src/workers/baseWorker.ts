@@ -44,6 +44,8 @@ export default class BaseWorker {
                 // Skip processing if worker data is empty
                 if (this.context.length === 0) {
                     logger.warn('Worker data array is empty. Skipping processing.');
+
+                    // Exit the worker
                     process.exit(0);
                 }
 

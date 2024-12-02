@@ -1,5 +1,17 @@
-export default interface WorkerMessage {
+interface WorkerMessageBase {
     status: 'completed' | 'error';
-    data?: Record<string, unknown>;
-    error?: string;
 }
+
+interface CompletedWorkerMessage extends WorkerMessageBase {
+    status: 'completed';
+    data: Record<string, unknown>[];
+}
+
+interface ErrorWorkerMessage extends WorkerMessageBase {
+    status: 'error';
+    error: string;
+}
+
+type WorkerMessage = CompletedWorkerMessage | ErrorWorkerMessage;
+
+export default WorkerMessage;

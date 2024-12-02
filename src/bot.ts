@@ -13,7 +13,9 @@ import { Worker } from 'worker_threads';
 import prisma from './db/prisma/prisma';
 import logger from './utils/logger';
 import WorkerData from './types/workerData';
-import { CrawlTaskStatus } from '@prisma/client'; 
+import { CrawlTaskStatus } from '@prisma/client';
+import WorkerMessage from './types/workerMessage';
+import isWorkerMessageDataCrawledDataArray from './utils/typesUtils/isWorkerMessageDataCrawledDataArray';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -83,6 +85,9 @@ export const crawlPendingTasks = async (): Promise<void> => {
         // Worker started
         worker.on('online', async () => {
 
+            // Increment worker count
+            activeWorkers++;
+
             // Log message
             logger.info(`Crawling task for ${source.site_name} with id ${source.id}...`);
 
@@ -91,6 +96,67 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 where: { id: task.id },
                 data: { status: CrawlTaskStatus.IN_PROGRESS },
             });
+
+        });
+
+        // Listen for messages from worker
+        worker.on('message', async (message: WorkerMessage) => {
+
+            // Check if the message indicates a completed task and contains valid crawled data
+            if (message.status === 'completed' && isWorkerMessageDataCrawledDataArray(message.data)) {
+
+                // Explicitly cast after validation
+                const crawledDataEntries = message.data as CrawledDataEntry[];
+
+                // Perform database operations in a single transaction
+                await prisma.$transaction([
+
+                    // Save crawled data
+                    prisma.crawledData.createMany({
+                        data: crawledDataEntries.map((entry) => ({
+                            text: entry.text,
+                            source_url_id: entry.sourceUrlId,
+                            date: entry.date,
+                            contractor: entry.contractor,
+                        })),
+                    }),
+
+                    // Update task status to completed
+                    prisma.crawlTasks.update({
+                        where: { id: task.id },
+                        data: {
+                            status: CrawlTaskStatus.COMPLETED,
+                            completed_at: new Date(),
+                        },
+                    }),
+                ]);
+
+                // Log message
+                logger.info(`Task completed for ${source.site_name} with id ${source.id}.`, message.data);
+
+                // Receive error message
+            } else if (message.status === 'error') {
+
+                // Log error
+                logger.error(`Error in task for ${source.site_name} with id ${source.id}.`, message.error);
+
+                // Update task status to error
+                await prisma.crawlTasks.update({
+                    where: { id: task.id },
+                    data: { status: CrawlTaskStatus.FAILED, error: message.error }
+                });
+            }
+
+        });
+
+        // Listen for worker exit
+        worker.on('exit', async (code) => {
+
+            // Decrement active worker count
+            activeWorkers--;
+
+            // Log message if worker didn't exit properly
+            if (code !== 0) logger.error(`Worker stopped with exit code ${code}`);
 
         });
 
