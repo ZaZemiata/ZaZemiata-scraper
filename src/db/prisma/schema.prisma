@@ -61,7 +61,7 @@ model CrawledData {
   created_at DateTime @default(now())
 
   source_url_id BigInt
-  SourceUrls SourceUrls @relation(fields: [source_url_id], references: [id])
+  SourceUrls    SourceUrls @relation(fields: [source_url_id], references: [id])
 }
 
 // Settings model
@@ -76,13 +76,22 @@ model Settings {
   Sources   Sources @relation(fields: [source_id], references: [id])
 }
 
-//Keywords model
+// Keywords model
 model KeyWords {
   id         BigInt   @id @default(autoincrement())
   word       String
   priority   Priority @default(MEDIUM)
   active     Boolean
   created_at DateTime @default(now())
+}
+
+// User model
+model User {
+  id        BigInt   @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Enum definitions
