@@ -12,7 +12,7 @@ enum Priority {
 // Seeder class for the keyWords table
 export default class KeyWordSeeder {
 
-     //Drops all records from the keyWords table
+    //Drops all records from the keyWords table
     async drop() {
 
         // Prepare for errors
@@ -23,8 +23,8 @@ export default class KeyWordSeeder {
 
             // Log success
             logger.info("All records in the keyWords table have been deleted.");
-        } 
-        
+        }
+
         // Catch errors
         catch (error) {
 
@@ -43,19 +43,37 @@ export default class KeyWordSeeder {
         const data = [
             {
                 word: "Отпадъци",
-                priority: Priority.HIGH,
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "Алтернативно гориво, Алтернативни горива",
-                priority: Priority.CRITICAL,
+                word: "отпадък (но не отпадъчни / отпадни води)",
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
-                word: "РДФ, RDF",
-                priority: Priority.HIGH,
+                word: "Алтернативно гориво",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Алтернативни горива",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "РДФ",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "RDF",
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
@@ -73,19 +91,19 @@ export default class KeyWordSeeder {
             },
             {
                 word: "Пиролиза",
-                priority: Priority.LOW,
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
                 word: "Газификация",
-                priority: Priority.HIGH,
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
             {
                 word: "Плазма",
-                priority: Priority.CRITICAL,
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
@@ -97,11 +115,60 @@ export default class KeyWordSeeder {
             },
             {
                 word: "Термично третиране",
-                priority: Priority.LOW,
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Термична преработка",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Брикел",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Бобовдол",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Топлофикация Сливен",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Топлофикация Перник",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Топлофикация",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Енергийно оползотворяване",
+                priority: Priority.MEDIUM,
+                active: true,
+                created_at: new Date(),
+            },
+            {
+                word: "Оползотворяване",
+                priority: Priority.MEDIUM,
                 active: true,
                 created_at: new Date(),
             },
         ];
+
         try {
 
             // Seed the keyWords table with the prepared data
@@ -109,8 +176,8 @@ export default class KeyWordSeeder {
 
             // Log success
             logger.info("keyWords table seeded successfully.");
-        } 
-        
+        }
+
         // Catch errors
         catch (error) {
 
