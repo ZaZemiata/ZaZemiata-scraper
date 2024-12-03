@@ -15,7 +15,6 @@ import logger from './utils/logger';
 import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
-import isWorkerMessageDataCrawledDataArray from './utils/typesUtils/isWorkerMessageDataCrawledDataArray';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -102,51 +101,104 @@ export const crawlPendingTasks = async (): Promise<void> => {
         // Listen for messages from worker
         worker.on('message', async (message: WorkerMessage) => {
 
-            // Check if the message indicates a completed task and contains valid crawled data
-            if (message.status === 'completed' && isWorkerMessageDataCrawledDataArray(message.data)) {
+            // Prepare for errors
+            try {
 
-                // Explicitly cast after validation
-                const crawledDataEntries = message.data as CrawledDataEntry[];
+                // Check if the message indicates a completed task
+                if (message.status === 'completed') {
 
-                // Perform database operations in a single transaction
-                await prisma.$transaction([
+                    // Validate that the message data is an array
+                    if (!Array.isArray(message.data)) {
+                        throw new Error('Message data is not an array.');
+                    }
 
-                    // Save crawled data
-                    prisma.crawledData.createMany({
-                        data: crawledDataEntries.map((entry) => ({
-                            text: entry.text,
-                            source_url_id: entry.sourceUrlId,
-                            date: entry.date,
-                            contractor: entry.contractor,
-                        })),
-                    }),
+                    // Loop though each entry of message.data and check if it is of type CrawledDataEntry
+                    const crawledDataEntries: CrawledDataEntry[] = message.data.map((entry, index) => {
 
-                    // Update task status to completed
-                    prisma.crawlTasks.update({
+                        // Check if the entry is either object or null
+                        if (typeof entry !== 'object' || entry === null) {
+                            throw new Error(`Entry at index ${index} is not a valid object.`);
+                        }
+
+                        // Separate required fields from the entry
+                        const { text, sourceUrlId, date, contractor } = entry;
+
+                        // Check if text field is of type string
+                        if (typeof text !== 'string') {
+                            throw new Error(`Entry at index ${index} has invalid 'text' property.`);
+                        }
+
+                        // Check if sourceUrlId field is of type bigint
+                        if (typeof sourceUrlId !== 'bigint') {
+                            throw new Error(`Entry at index ${index} has invalid 'sourceUrlId' property.`);
+                        }
+
+                        // Check if date field is of type Date
+                        if (!(date instanceof Date)) {
+                            throw new Error(`Entry at index ${index} has invalid 'date' property.`);
+                        }
+
+                        // Check if contractor field is of type string
+                        if (typeof contractor !== 'string') {
+                            throw new Error(`Entry at index ${index} has invalid 'contractor' property.`);
+                        }
+
+                        // Save the new validated CrawledData object
+                        return { text, sourceUrlId, date, contractor };
+                    });
+
+                    // Perform database operations in a single transaction
+                    await prisma.$transaction([
+
+                        // Save crawled data
+                        prisma.crawledData.createMany({
+                            data: crawledDataEntries.map((entry) => ({
+                                text: entry.text,
+                                source_url_id: entry.sourceUrlId,
+                                date: entry.date,
+                                contractor: entry.contractor,
+                            })),
+                        }),
+
+                        // Update task status to completed
+                        prisma.crawlTasks.update({
+                            where: { id: task.id },
+                            data: {
+                                status: CrawlTaskStatus.COMPLETED,
+                                completed_at: new Date(),
+                            },
+                        }),
+                    ]);
+
+                    // Log success
+                    logger.info(`Task completed for ${source.site_name} with id ${source.id}.`);
+                } else if (message.status === 'error') {
+
+                    // Handle worker error
+                    throw new Error(message.error || 'Worker task error.');
+                }
+
+                // Proceed if error
+            } catch (error) {
+
+                // Use a type guard to handle 'unknown'
+                if (error instanceof Error) {
+                    logger.error(`Error in task for ${source.site_name} with id ${source.id}: ${error.message}`);
+
+                    // Update crawl task status to 'FAILED'
+                    await prisma.crawlTasks.update({
                         where: { id: task.id },
                         data: {
-                            status: CrawlTaskStatus.COMPLETED,
-                            completed_at: new Date(),
+                            status: CrawlTaskStatus.FAILED,
+                            error: error.message,
                         },
-                    }),
-                ]);
+                    });
+                } else {
 
-                // Log message
-                logger.info(`Task completed for ${source.site_name} with id ${source.id}.`, message.data);
-
-                // Receive error message
-            } else if (message.status === 'error') {
-
-                // Log error
-                logger.error(`Error in task for ${source.site_name} with id ${source.id}.`, message.error);
-
-                // Update task status to error
-                await prisma.crawlTasks.update({
-                    where: { id: task.id },
-                    data: { status: CrawlTaskStatus.FAILED, error: message.error }
-                });
+                    // Handle non-Error cases
+                    logger.error(`Unknown error in task for ${source.site_name} with id ${source.id}`);
+                }
             }
-
         });
 
         // Listen for worker exit
