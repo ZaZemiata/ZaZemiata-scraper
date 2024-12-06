@@ -1,6 +1,6 @@
 type CrawledDataEntry = {
     text: string;
-    sourceUrlId: bigint;
+    source_url_id: bigint;
     date: Date;    
     contractor: string;
 };
