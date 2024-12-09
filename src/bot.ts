@@ -15,7 +15,7 @@ import logger from './utils/logger';
 import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
-import filterEntriesByKeywords from './utils/botUtils/filterEntriesByKeywords';
+import filterEntriesByKeywordsAndDuplicates from './utils/botUtils/filterEntriesByKeywordsAndDuplicates';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -153,7 +153,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                         crawledDataEntries.map(async (entry) => {
 
                             // Check if the entry matches the keywords
-                            const doEntryMatchesKeyword = await filterEntriesByKeywords(entry);
+                            const doEntryMatchesKeyword = await filterEntriesByKeywordsAndDuplicates(entry);
 
                             // Return only if the entry matches at least one keyword
                             return doEntryMatchesKeyword ? entry : null;
