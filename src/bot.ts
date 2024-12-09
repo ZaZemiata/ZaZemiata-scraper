@@ -15,6 +15,7 @@ import logger from './utils/logger';
 import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
+import filterEntriesByKeywords from './utils/botUtils/filterEntriesByKeywords';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -116,41 +117,59 @@ export const crawlPendingTasks = async (): Promise<void> => {
                     const crawledDataEntries: CrawledDataEntry[] = message.data.map((entry, index) => {
 
                         // Check if the entry is either object or null
-                        if (typeof entry !== 'object' || entry === null) 
+                        if (typeof entry !== 'object' || entry === null)
                             throw new Error(`Entry at index ${index} is not a valid object.`);
 
                         // Separate required fields from the entry
                         const { text, source_url_id, date, contractor } = entry;
 
                         // Check if text field is of type string
-                        if (typeof text !== 'string') 
+                        if (typeof text !== 'string')
                             throw new Error(`Entry at index ${index} has invalid 'text' property.`);
-                        
+
 
                         // Check if sourceUrlId field is of type bigint
-                        if (typeof source_url_id !== 'bigint') 
+                        if (typeof source_url_id !== 'bigint')
                             throw new Error(`Entry at index ${index} has invalid 'sourceUrlId' property.`);
-                        
+
 
                         // Check if date field is of type Date
-                        if (!(date instanceof Date)) 
+                        if (!(date instanceof Date))
                             throw new Error(`Entry at index ${index} has invalid 'date' property.`);
-                        
+
 
                         // Check if contractor field is of type string
-                        if (typeof contractor !== 'string') 
+                        if (typeof contractor !== 'string')
                             throw new Error(`Entry at index ${index} has invalid 'contractor' property.`);
-                    
+
                         // Save the new validated CrawledData object
                         return { text, source_url_id, date, contractor };
                     });
+
+                    // Filter entries to include only those that match keywords
+                    const filteredEntries = await Promise.all(
+
+                        // Loop though all entries
+                        crawledDataEntries.map(async (entry) => {
+
+                            // Check if the entry matches the keywords
+                            const doEntryMatchesKeyword = await filterEntriesByKeywords(entry);
+
+                            // Return only if the entry matches at least one keyword
+                            return doEntryMatchesKeyword ? entry : null;
+                        })
+
+                        // Filter out the null entries
+                    ).then(results => results.filter(entry => entry !== null));
+
 
                     // Perform database operations in a single transaction
                     await prisma.$transaction([
 
                         // Save crawled data
                         prisma.crawledData.createMany({
-                            data: crawledDataEntries,
+                            data: filteredEntries,
+                            skipDuplicates: true,
                         }),
 
                         // Update task status to completed
@@ -165,7 +184,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
 
                     // Log success
                     logger.info(`Task completed for ${source.site_name} with id ${source.id}.`);
-                    
+
                 } else if (message.status === 'error') {
 
                     // Handle worker error
