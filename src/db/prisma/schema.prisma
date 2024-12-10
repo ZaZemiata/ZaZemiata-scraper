@@ -62,6 +62,8 @@ model CrawledData {
 
   source_url_id BigInt
   SourceUrls    SourceUrls @relation(fields: [source_url_id], references: [id])
+
+  @@unique([text, contractor, source_url_id])
 }
 
 // Settings model
