@@ -15,7 +15,8 @@ import logger from './utils/logger';
 import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
-import filterEntriesByKeywordsAndDuplicates from './utils/botUtils/filterEntriesByKeywordsAndDuplicates';
+import filterEntriesByKeywords from './utils/botUtils/filterEntriesByKeywords';
+import insertCrawledDataEntrieErrorHadler from './utils/errorHandlers/botErrorHandlers/InsertCrawledDataEntrieErrorHandler';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -97,7 +98,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 data: { status: CrawlTaskStatus.IN_PROGRESS },
             });
 
-        });
+        }); 
 
         // Listen for messages from worker
         worker.on('message', async (message: WorkerMessage) => {
@@ -147,40 +148,33 @@ export const crawlPendingTasks = async (): Promise<void> => {
                     });
 
                     // Filter entries to include only those that match keywords
-                    const filteredEntries = await Promise.all(
+                    const filteredEntries = await filterEntriesByKeywords(crawledDataEntries);
 
-                        // Loop though all entries
-                        crawledDataEntries.map(async (entry) => {
+                    // Create promises for each entry insertion
+                    const insertPromises = filteredEntries.map((entry) =>
+                        prisma.crawledData.create({
+                            data: entry,
+                        }).catch((error) => {
 
-                            // Check if the entry matches the keywords
-                            const doEntryMatchesKeyword = await filterEntriesByKeywordsAndDuplicates(entry);
+                            // Display the error
+                            insertCrawledDataEntrieErrorHadler(entry, error.message);
 
-                            // Return only if the entry matches at least one keyword
-                            return doEntryMatchesKeyword ? entry : null;
+                            return null; // Skip this entry
                         })
+                    );
 
-                        // Filter out the null entries
-                    ).then(results => results.filter(entry => entry !== null));
+                    // Execute all promises concurrently
+                    const results = await Promise.all(insertPromises);
 
+                    // Log the number of successful entries
+                    const successfulEntries = results.filter(result => result !== null).length;
+                    logger.info(`Successfully inserted ${successfulEntries} entries.`);
 
-                    // Perform database operations in a single transaction
-                    await prisma.$transaction([
-
-                        // Save crawled data
-                        prisma.crawledData.createMany({
-                            data: filteredEntries,
-                            skipDuplicates: true,
-                        }),
-
-                        // Update task status to completed
-                        prisma.crawlTasks.update({
-                            where: { id: task.id },
-                            data: {
-                                status: CrawlTaskStatus.COMPLETED,
-                                completed_at: new Date(),
-                            },
-                        }),
-                    ]);
+                    // Update task status to completed
+                    await prisma.crawlTasks.update({
+                        where: { id: task.id },
+                        data: { status: CrawlTaskStatus.COMPLETED, completed_at: new Date() },
+                    });
 
                     // Log success
                     logger.info(`Task completed for ${source.site_name} with id ${source.id}.`);
