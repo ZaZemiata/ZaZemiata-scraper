@@ -16,7 +16,6 @@ import WorkerData from './types/workerData';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
 import filterEntriesByKeywords from './utils/botUtils/filterEntriesByKeywords';
-import insertCrawledDataEntrieErrorHadler from './utils/errorHandlers/botErrorHandlers/InsertCrawledDataEntrieErrorHandler';
 
 // Constants
 const MAX_CONCURRENT_WORKERS = os.cpus().length - 1;
@@ -98,7 +97,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                 data: { status: CrawlTaskStatus.IN_PROGRESS },
             });
 
-        }); 
+        });
 
         // Listen for messages from worker
         worker.on('message', async (message: WorkerMessage) => {
@@ -150,31 +149,24 @@ export const crawlPendingTasks = async (): Promise<void> => {
                     // Filter entries to include only those that match keywords
                     const filteredEntries = await filterEntriesByKeywords(crawledDataEntries);
 
-                    // Create promises for each entry insertion
-                    const insertPromises = filteredEntries.map((entry) =>
-                        prisma.crawledData.create({
-                            data: entry,
-                        }).catch((error) => {
+                    // Perform database operations in a single transaction
+                    await prisma.$transaction([
 
-                            // Display the error
-                            insertCrawledDataEntrieErrorHadler(entry, error.message);
+                        // Save crawled data
+                        prisma.crawledData.createMany({
+                            data: filteredEntries,
+                            skipDuplicates: true,
+                        }),
 
-                            return null; // Skip this entry
-                        })
-                    );
-
-                    // Execute all promises concurrently
-                    const results = await Promise.all(insertPromises);
-
-                    // Log the number of successful entries
-                    const successfulEntries = results.filter(result => result !== null).length;
-                    logger.info(`Successfully inserted ${successfulEntries} entries.`);
-
-                    // Update task status to completed
-                    await prisma.crawlTasks.update({
-                        where: { id: task.id },
-                        data: { status: CrawlTaskStatus.COMPLETED, completed_at: new Date() },
-                    });
+                        // Update task status to completed
+                        prisma.crawlTasks.update({
+                            where: { id: task.id },
+                            data: {
+                                status: CrawlTaskStatus.COMPLETED,
+                                completed_at: new Date(),
+                            },
+                        }),
+                    ]);
 
                     // Log success
                     logger.info(`Task completed for ${source.site_name} with id ${source.id}.`);
