@@ -1,5 +1,6 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
+import { url } from "inspector";
 
 // Seeder class for the sourceUrls table
 export default class SourceUrlSeeder {
@@ -98,6 +99,13 @@ export default class SourceUrlSeeder {
             },
             {
                 id: 1000,
+                url: 'https://www.riosv-ruse.org/protzeduri/protzeduri-po-glava-shesta-ot-zoos/content/40-saobshteniya-po-chl-8-al-4-ot-naredbata-za-eo',
+                active: true,
+                created_at: new Date(),
+                source_id: 1000,
+            },
+            {
+                id: 1001,
                 url: 'https://www.riosv-ruse.org/protzeduri/protzeduri-po-glava-shesta-ot-zoos/content/8-eo',
                 active: true,
                 created_at: new Date(),
