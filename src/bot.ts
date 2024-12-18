@@ -147,7 +147,8 @@ export const crawlPendingTasks = async (): Promise<void> => {
                     });
 
                     // Filter entries to include only those that match keywords
-                    const filteredEntries = await filterEntriesByKeywords(crawledDataEntries);
+                    // const filteredEntries = await filterEntriesByKeywords(crawledDataEntries);
+                    const filteredEntries = (crawledDataEntries);
 
                     // Perform database operations in a single transaction
                     await prisma.$transaction([

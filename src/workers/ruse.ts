@@ -4,8 +4,6 @@
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
-import logger from "../utils/logger";
-import { console } from "inspector";
 import WorkerMessage from "../types/workerMessage";
 
 new class Ruse extends BaseWorker {
