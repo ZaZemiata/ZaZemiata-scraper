@@ -129,7 +129,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
 
 
                         // Check if sourceUrlId field is of type bigint
-                        if (typeof source_url_id !== 'bigint')
+                        if (typeof source_url_id !== 'bigint' && typeof source_url_id !== 'number')
                             throw new Error(`Entry at index ${index} has invalid 'sourceUrlId' property.`);
 
 

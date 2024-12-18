@@ -12,7 +12,7 @@ new class Ruse extends BaseWorker {
 
         // Get the source URL
         const url = this.context[0].url;
-        const sourceId = this.context[0].sourceUrlId;
+        const sourceId = Number(this.context[0].sourceUrlId);
 
         // Initialize the browser
         let browser;
@@ -109,7 +109,7 @@ new class Ruse extends BaseWorker {
                         text,
                         contractor,
                         date: new Date(dateSting),
-                        source_url_id: BigInt(Number(sourceId)),
+                        source_url_id: sourceId,
                     };
 
                     // Push the crawled entity
