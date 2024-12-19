@@ -27,12 +27,17 @@ new class RiewWorker extends BaseWorker {
             // Get all entry links
             const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
                 url: link.href,
+
+                // Get the contractor from the url's inner text
                 text: link.innerText.trim(),
+
+                // Get the badge from the current list item being processed and extract the date
                 date: link.parentElement?.querySelector('.badge.text-bg-secondary')?.textContent?.trim() || ''
             })));
 
+            // Throw an error if no entries found
             if (entryLinks.length === 0) {
-                throw new Error('No entries found on the page.');
+                throw new Error('Entries not found.');
             }
 
             // Store the crawled data
@@ -52,28 +57,46 @@ new class RiewWorker extends BaseWorker {
 
                 // Check if the container exists
                 if (!mainContainer)
-                    throw new Error('Main content container not found.');
+                    throw new Error('The main container that holds the text was not found.');
 
-                // Extract the text from the container
+                // Extract text content from the main container
                 const textContent = await mainContainer.evaluate(node => {
+
+                    // Store the text.
                     const textParts: string[] = [];
+
+                    // Iterate through all inner containers that contain text
                     const elements = node.querySelectorAll('div');
                     elements.forEach(el => {
+
+                        // Check if the container contains text
                         if (el.textContent) {
+
+                            // Trim surrounding white spaces from the text
                             const trimmed = el.textContent.trim();
+
+                            // Add the trimmed text to the array if it's not empty
                             if (trimmed) {
                                 textParts.push(trimmed);
                             }
                         }
                     });
+
+                    // Join the extracted text parts into a single string
                     return textParts.join(' ');
                 });
 
-                // Parse the data into required fields
+                // Format the date
                 const dateRegex = /\d{2}\.\d{2}\.\d{4}/;
                 const dateMatch = dateString.match(dateRegex);
                 const date = dateMatch ? dateMatch[0] : null;
 
+                // Date not found or invalid
+                if (!date) {
+                    throw new Error('Invalid date format.');
+                }
+
+                // Create crawled data entity with the new data
                 const crawledEntity = {
                     text: textContent,
                     contractor,
