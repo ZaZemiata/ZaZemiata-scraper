@@ -86,7 +86,7 @@ new class Ruse extends BaseWorker {
                     text = res.text?.trim();
 
                     // Clean the date
-                    const cleanDateRegex = / г\.|-/g;
+                    const cleanDateRegex = / г\.?|-/g;
 
                     // Format the date, remove the contractor and clean the date
                     date = contractor?.split('/').pop()?.trim().replace(cleanDateRegex, '');
