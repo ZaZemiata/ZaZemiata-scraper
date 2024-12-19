@@ -1,6 +1,3 @@
-// This is a sample worker that demonstrates how to create a worker.
-// This just sends a message to the main thread with mock data.
-
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
@@ -86,7 +83,7 @@ new class Ruse extends BaseWorker {
                     text = res.text?.trim();
 
                     // Clean the date
-                    const cleanDateRegex = / г\.|-/g;
+                    const cleanDateRegex = / г\.?|-/g;
 
                     // Format the date, remove the contractor and clean the date
                     date = contractor?.split('/').pop()?.trim().replace(cleanDateRegex, '');
