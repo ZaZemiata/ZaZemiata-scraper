@@ -1,6 +1,3 @@
-// This is a sample worker that demonstrates how to create a worker.
-// This just sends a message to the main thread with mock data.
-
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
