@@ -31,7 +31,7 @@ model Sources {
 // Source urls model
 model SourceUrls {
   id         BigInt   @id
-  url        String
+  url        String   @db.VarChar(1024)
   active     Boolean
   created_at DateTime @default(now())
 
@@ -55,8 +55,8 @@ model CrawlTasks {
 // Crawled Data model
 model CrawledData {
   id         BigInt   @id @default(autoincrement())
-  text       String
-  contractor String
+  text       String   
+  contractor String   @db.VarChar(255)
   date       DateTime
   created_at DateTime @default(now())
 
@@ -69,8 +69,8 @@ model CrawledData {
 // Settings model
 model Settings {
   id         BigInt   @id
-  name       String
-  value      String
+  name       String   @db.VarChar(128)
+  value      String   @db.VarChar(256)
   active     Boolean
   created_at DateTime @default(now())
 
@@ -81,7 +81,7 @@ model Settings {
 // Keywords model
 model KeyWords {
   id         BigInt   @id @default(autoincrement())
-  word       String
+  word       String   @db.VarChar(64)
   priority   Priority @default(MEDIUM)
   active     Boolean
   created_at DateTime @default(now())
@@ -90,8 +90,8 @@ model KeyWords {
 // User model
 model User {
   id        BigInt   @id @default(autoincrement())
-  email     String   @unique
-  password  String
+  email     String   @unique @db.VarChar(128)
+  password  String   @db.VarChar(128)
   createdAt DateTime @default(now())
 }
 
