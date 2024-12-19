@@ -28,7 +28,7 @@ new class RiewWorker extends BaseWorker {
             const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
                 url: link.href,
                 text: link.innerText.trim(),
-                date: link.closest('.list-group-item')?.querySelector('.badge.text-bg-secondary')?.textContent?.trim() || ''
+                date: link.parentElement?.querySelector('.badge.text-bg-secondary')?.textContent?.trim() || ''
             })));
 
             if (entryLinks.length === 0) {
