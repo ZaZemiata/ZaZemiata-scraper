@@ -2,17 +2,12 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
-
-// Define the type for the crawled data entries
-type CrawledDataEntry = {
-    text: string;
-    source_url_id: number | bigint;
-    date: Date;
-    contractor: string;
-};
+import CrawledDataEntry from "../types/crawledDataEntry";
 
 new class Varna extends BaseWorker {
+
     async run() {
+
         // Get the source URL and source ID
         const url = this.context[0].url;
         const sourceId = Number(this.context[0].sourceUrlId);
@@ -20,6 +15,7 @@ new class Varna extends BaseWorker {
         let browser;
 
         try {
+
             // Launch the browser
             browser = await puppeteer.launch(browserOptions);
 
@@ -35,28 +31,32 @@ new class Varna extends BaseWorker {
             // Get the container with the list of announcements
             const announcementsContainer = await page.$('div.bialty-container');
 
-            if (!announcementsContainer) {
+            if (!announcementsContainer)
                 throw new Error('Announcements container not found.');
-            }
+
 
             // Get all list items (<li>) within the container
             const listItems = await announcementsContainer.$$('li');
 
-            if (listItems.length === 0) {
+            if (listItems.length === 0)
                 throw new Error('No announcements found.');
-            }
 
             // Store the crawled data
             const crawledData: CrawledDataEntry[] = [];
 
+            // Loop through each list item
             for (const listItem of listItems) {
+
                 // Extract the data
                 const data = await listItem.evaluate((el) => {
+
+                    // Extract the text, href and title from the list item
                     const linkElement = el.querySelector('a');
                     const textContent = el.textContent?.trim();
                     const href = linkElement?.getAttribute('href');
                     const title = linkElement?.textContent?.trim();
 
+                    // Return the extracted data
                     return {
                         title: title || '',
                         text: textContent || '',
@@ -64,7 +64,9 @@ new class Varna extends BaseWorker {
                     };
                 });
 
-                if (!data.text || !data.href) continue;
+                // Skip if the text or href is empty
+                if (!data.text || !data.href) 
+                    continue;
 
                 // Extract the contractor from the text using regex
                 const contractorMatch = data.text.match(/възложител[:\s]*(.*?)(?=[\n.,]|\s*$)/i);
@@ -91,16 +93,29 @@ new class Varna extends BaseWorker {
 
             // Publish the message
             this.publishMessage(message);
-        } catch (error) {
+        }
+
+        // Catch errors
+        catch (error) {
+
+            // Build an error message
             const message: WorkerMessage = {
                 status: 'error',
                 error: error instanceof Error ? error.message : 'Unknown error occurred.',
             };
+
+            // Publish the error message
             this.publishMessage(message);
-        } finally {
-            if (browser) {
+        }
+
+        // Close the browser
+        finally {
+
+            // Close the browser
+            if (browser)
                 await browser.close();
-            }
+
+            // Exit the worker
             process.exit();
         }
     }
