@@ -13,6 +13,7 @@ import { Worker } from 'worker_threads';
 import prisma from './db/prisma/prisma';
 import logger from './utils/logger';
 import WorkerData from './types/workerData';
+import CrawledDataEntry from './types/crawledDataEntry';
 import { CrawlTaskStatus } from '@prisma/client';
 import WorkerMessage from './types/workerMessage';
 import filterEntriesByKeywords from './utils/botUtils/filterEntriesByKeywords';
