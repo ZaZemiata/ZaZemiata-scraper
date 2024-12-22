@@ -15,18 +15,18 @@ new class Blagoevgrad extends BaseWorker {
 
     //Parse the date
     private dataParser: { [key: string]: number } = {
-        "Декември": 12,
-        "Ноември": 11,
-        "Октомври": 10,
-        "Септември": 9,
-        "Август": 8,
-        "Юли": 7,
-        "Юни": 6,
-        "Май": 5,
-        "Април": 4,
-        "Март": 3,
-        "Февруари": 2,
-        "Януари": 1
+        "декември": 12,
+        "ноември": 11,
+        "октомври": 10,
+        "септември": 9,
+        "август": 8,
+        "юли": 7,
+        "юни": 6,
+        "май": 5,
+        "април": 4,
+        "март": 3,
+        "февруари": 2,
+        "януари": 1
     }
 
     private url = this.context[0].url;
@@ -50,7 +50,7 @@ new class Blagoevgrad extends BaseWorker {
             await page.goto(this.url, { waitUntil: 'domcontentloaded' });
 
             // Wait for the page to load
-            await page.waitForNetworkIdle({ idleTime: 15000 });
+            await page.waitForNetworkIdle({ idleTime: 1000 });
 
             const crawledData = [];
 
@@ -101,7 +101,7 @@ new class Blagoevgrad extends BaseWorker {
             })
 
             // Get the date & contractor & text from the result
-            date = res.date.split(" ");
+            date = res.date.toLowerCase().split(" ");
             contractor = res.contractor.split("Възложител:")[1].trim();
             text = res.text
 
@@ -158,7 +158,7 @@ new class Blagoevgrad extends BaseWorker {
                 })
 
                 // Get the date & contractor & text from the result
-                let date: string[] = res.date.split(" ");
+                let date: string[] = res.date.toLowerCase().split(" ");
                 let contractor: string = res.contractor.split("Възложител:")[1].trim();
                 let text = res.text
 
