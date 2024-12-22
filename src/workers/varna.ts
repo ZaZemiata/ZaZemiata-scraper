@@ -12,6 +12,7 @@ new class Varna extends BaseWorker {
         const url = this.context[0].url;
         const sourceId = Number(this.context[0].sourceUrlId);
 
+        // Initialize the browser
         let browser;
 
         try {
@@ -65,7 +66,7 @@ new class Varna extends BaseWorker {
                 });
 
                 // Skip if the text or href is empty
-                if (!data.text || !data.href) 
+                if (!data.text || !data.href)
                     continue;
 
                 // Extract the contractor from the text using regex
@@ -79,44 +80,44 @@ new class Varna extends BaseWorker {
                 // Add to crawledData
                 crawledData.push({
                     text: data.text,
-                    contractor,
+                    ...(contractor && { contractor }),
                     date,
                     source_url_id: sourceId,
                 });
-            }
+        }
 
             // Build the message
             const message: WorkerMessage = {
-                status: 'completed',
-                data: crawledData,
-            };
+            status: 'completed',
+            data: crawledData,
+        };
 
-            // Publish the message
-            this.publishMessage(message);
-        }
+        // Publish the message
+        this.publishMessage(message);
+    }
 
-        // Catch errors
-        catch (error) {
+    // Catch errors
+    catch(error) {
 
-            // Build an error message
-            const message: WorkerMessage = {
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Unknown error occurred.',
-            };
+        // Build an error message
+        const message: WorkerMessage = {
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error occurred.',
+        };
 
-            // Publish the error message
-            this.publishMessage(message);
-        }
+        // Publish the error message
+        this.publishMessage(message);
+    }
 
         // Close the browser
         finally {
 
-            // Close the browser
-            if (browser)
-                await browser.close();
+    // Close the browser
+    if (browser)
+        await browser.close();
 
-            // Exit the worker
-            process.exit();
-        }
+    // Exit the worker
+    process.exit();
+}
     }
 };

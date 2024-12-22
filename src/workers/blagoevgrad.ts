@@ -29,8 +29,8 @@ new class Blagoevgrad extends BaseWorker {
         "януари": 1
     }
 
+    // Get the source URL and source ID
     private url = this.context[0].url;
-
     private sourceId = Number(this.context[0].sourceUrlId);
 
     async run() {

@@ -1,8 +1,8 @@
- type CrawledDataEntry = {
+type CrawledDataEntry = {
     text: string;
     source_url_id: number | bigint;
     date: Date;    
-    contractor: string;
+    contractor?: string;
 };
 
 export default CrawledDataEntry;

@@ -128,19 +128,16 @@ export const crawlPendingTasks = async (): Promise<void> => {
                         if (typeof text !== 'string')
                             throw new Error(`Entry at index ${index} has invalid 'text' property.`);
 
-
                         // Check if sourceUrlId field is of type bigint
                         if (typeof source_url_id !== 'bigint' && typeof source_url_id !== 'number')
                             throw new Error(`Entry at index ${index} has invalid 'sourceUrlId' property.`);
-
 
                         // Check if date field is of type Date
                         if (!(date instanceof Date))
                             throw new Error(`Entry at index ${index} has invalid 'date' property.`);
 
-
-                        // Check if contractor field is of type string
-                        if (typeof contractor !== 'string')
+                        // Check if contractor field is of type string if it exists
+                        if (contractor !== undefined && typeof contractor !== 'string')
                             throw new Error(`Entry at index ${index} has invalid 'contractor' property.`);
 
                         // Save the new validated CrawledData object
@@ -179,8 +176,10 @@ export const crawlPendingTasks = async (): Promise<void> => {
                     throw new Error(message.error || 'Worker task error.');
                 }
 
-                // Proceed if error
-            } catch (error) {
+            } 
+
+            // Proceed if error
+            catch (error) {
 
                 // Use a type guard to handle 'unknown'
                 if (error instanceof Error) {
@@ -194,6 +193,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                             error: error.message,
                         },
                     });
+                    
                 } else {
 
                     // Handle non-Error cases
@@ -210,9 +210,6 @@ export const crawlPendingTasks = async (): Promise<void> => {
 
             // Log message if worker didn't exit properly
             if (code !== 0) logger.error(`Worker stopped with exit code ${code}`);
-
         });
-
     }
-
 }
