@@ -7,115 +7,113 @@ new class RiewWorker extends BaseWorker {
 
     async run() {
 
-        // Get the source URL
-        const url = this.context[0].url;;
-        const sourceId = Number(this.context[0].sourceUrlId);
+        this.context.forEach(async source => {
 
-        // Initialize the browser
-        let browser;
+            // Get the source URL
+            const url = source.url;;
+            const sourceId = Number(source.sourceUrlId);
 
-        try {
-            // Launch the browser
-            browser = await puppeteer.launch(browserOptions);
+            // Initialize the browser
+            let browser;
 
-            // Create a new page
-            const page = await browser.newPage();
+            try {
+                // Launch the browser
+                browser = await puppeteer.launch(browserOptions);
 
-            // Go to the source URL
-            await page.goto(url, { waitUntil: 'domcontentloaded' });
+                // Create a new page
+                const page = await browser.newPage();
 
-            // Get all entry links
-            const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
-                // Get the content from the url's inner text
-                text: link.innerText.trim(),
+                // Go to the source URL
+                await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-                // Get the badge from the current list item being processed and extract the date
-                date: link.parentElement?.querySelector('.badge.text-bg-secondary')?.textContent?.trim() || ''
-            })));
+                // Get all entry links
+                const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
+                    // Get the content from the url's inner text
+                    text: link.innerText.trim(),
 
-            // Throw an error if no entries found
-            if (entryLinks.length === 0) {
-                throw new Error('Entries not found.');
-            }
+                    // Get the badge from the current list item being processed and extract the date
+                    date: link.parentElement?.querySelector('.badge.text-bg-secondary')?.textContent?.trim() || ''
+                })));
 
-            // Store the crawled data
-            const crawledData = [];
-
-            for (const entry of entryLinks) {
-
-                // Extract text and date from the record
-                const { text: textContent, date: dateString } = entry;
-
-                // Define the regex to find the contractor and extract the associated text
-                const contractorRegex = /възложител(?:и)?:?\s*([^.\n]+.*?)(?:\s*\.$|$)/gmi;
-                const contractorMatch = textContent.match(contractorRegex);
-
-                // Store the contractor name
-                let contractor;
-
-                // If contractor is found, remove "възложител" and keep the rest of the text
-                if (contractorMatch && contractorMatch.length > 0) {
-                    contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').trim();
-                } else {
-
-                    // If no match, split by commas and take the last record
-                    const splitText = textContent.split(',');
-                    contractor = splitText[splitText.length - 1].trim();
+                // Throw an error if no entries found
+                if (entryLinks.length === 0) {
+                    throw new Error('Entries not found.');
                 }
 
-                // Format the date
-                const dateRegex = /\d{2}\.\d{2}\.\d{4}/;
-                const dateMatch = dateString.match(dateRegex);
-                const date = dateMatch ? dateMatch[0] : null;
+                // Store the crawled data
+                const crawledData = [];
 
-                // Date not found or invalid
-                if (!date) {
-                    throw new Error('Invalid date format.');
+                for (const entry of entryLinks) {
+
+                    // Extract text and date from the record
+                    const { text: textContent, date: dateString } = entry;
+
+                    // Define the regex to find the contractor and extract the associated text
+                    const contractorRegex = /възложител(?:и)?:?\s*([^.\n]+.*?)(?:\s*\.$|$)/gmi;
+                    const contractorMatch = textContent.match(contractorRegex);
+
+                    // Store the contractor name
+                    let contractor;
+
+                    // If contractor is found, remove "възложител" and keep the rest of the text
+                    if (contractorMatch && contractorMatch.length > 0) {
+                        contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').trim();
+                    }
+
+                    // Format the date
+                    const dateRegex = /\d{2}\.\d{2}\.\d{4}/;
+                    const dateMatch = dateString.match(dateRegex);
+                    const date = dateMatch ? dateMatch[0] : null;
+
+                    // Date not found or invalid
+                    if (!date) {
+                        throw new Error('Invalid date format.');
+                    }
+
+                    // Create crawled data entity with the new data
+                    const crawledEntity = {
+                        text: textContent,
+                        ...(contractor && { contractor }),
+                        date: date ? new Date(date.split('.').reverse().join('-')) : null,
+                        source_url_id: sourceId,
+                    }
+
+                    // Push the crawled entity to the results array
+                    crawledData.push(crawledEntity);
+
+                };
+
+                // Build the success message
+                const message: WorkerMessage = {
+                    status: 'completed',
+                    data: crawledData,
+                };
+
+                // Publish the success message
+                this.publishMessage(message);
+
+            } catch (error) {
+
+                if (!(error instanceof Error)) {
+                    throw new Error('An unknown error occurred.');
                 }
 
-                // Create crawled data entity with the new data
-                const crawledEntity = {
-                    text: textContent,
-                    ...(contractor && { contractor }),
-                    date: date ? new Date(date.split('.').reverse().join('-')) : null,
-                    source_url_id: sourceId,
+                // Build error message
+                const message: WorkerMessage = {
+                    status: 'error',
+                    error: error.message,
+                };
+
+                // Publish the error message
+                this.publishMessage(message);
+
+            } finally {
+                if (browser) {
+                    await browser.close();
                 }
 
-                // Push the crawled entity to the results array
-                crawledData.push(crawledEntity);
-
-            };
-
-            // Build the success message
-            const message: WorkerMessage = {
-                status: 'completed',
-                data: crawledData,
-            };
-
-            // Publish the success message
-            this.publishMessage(message);
-
-        } catch (error) {
-
-            if (!(error instanceof Error)) {
-                throw new Error('An unknown error occurred.');
+                process.exit();
             }
-
-            // Build error message
-            const message: WorkerMessage = {
-                status: 'error',
-                error: error.message,
-            };
-
-            // Publish the error message
-            this.publishMessage(message);
-
-        } finally {
-            if (browser) {
-                await browser.close();
-            }
-
-            process.exit();
-        }
+        });
     }
 }
