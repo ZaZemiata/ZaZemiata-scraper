@@ -28,6 +28,7 @@ new class RiewWorker extends BaseWorker {
 
                 // Get all entry links
                 const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
+                    
                     // Get the content from the url's inner text
                     text: link.innerText.trim(),
 
