@@ -56,9 +56,9 @@ new class RiewWorker extends BaseWorker {
                     // Store the contractor name
                     let contractor;
 
-                    // If contractor is found, remove "възложител" and keep the rest of the text
+                    // If contractor is found, remove "възложител", dot at the end (if there is one) and keep the rest of the text
                     if (contractorMatch && contractorMatch.length > 0) {
-                        contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').trim();
+                        contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').replace(/\s*\.$/, '').trim();
                     }
 
                     // Format the date
