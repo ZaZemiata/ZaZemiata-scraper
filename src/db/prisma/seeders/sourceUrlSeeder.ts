@@ -64,7 +64,7 @@ export default class SourceUrlSeeder {
             },
             {
                 id: 500,
-                url: 'https://www.riosvt.org/ovos/uvedomlenia/',
+                url: 'https://www.riosvt.org/ovos/uvedomlenia/s2024/',
                 active: true,
                 created_at: new Date(),
                 source_id: 500,
@@ -141,7 +141,7 @@ export default class SourceUrlSeeder {
             },
             {
                 id: 1500,
-                url: 'https://riosv-shumen.eu/index.php?homepage=7&subnavy=1&act=116',
+                url: 'https://riosv-shumen.eu/index.php?homepage=7&subnavy=2&act=224',
                 active: true,
                 created_at: new Date(),
                 source_id: 1500,
