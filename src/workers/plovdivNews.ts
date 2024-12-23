@@ -26,7 +26,9 @@ new class RiewWorker extends BaseWorker {
 
             // Get all entry links
             const entryLinks = await page.$$eval('.list-group-item > a', links => links.map(link => ({
-                // Get the content from the url's inner text
+                url: link.href,
+
+                // Get the contractor from the url's inner text
                 text: link.innerText.trim(),
 
                 // Get the badge from the current list item being processed and extract the date
@@ -42,26 +44,47 @@ new class RiewWorker extends BaseWorker {
             const crawledData = [];
 
             for (const entry of entryLinks) {
+                const { url: entryUrl, text: contractor, date: dateString } = entry;
 
-                // Extract text and date from the record
-                const { text: textContent, date: dateString } = entry;
+                // Navigate to the entry URL
+                await page.goto(entryUrl, { waitUntil: 'domcontentloaded' });
 
-                // Define the regex to find the contractor and extract the associated text
-                const contractorRegex = /възложител(?:и)?:?\s*([^.\n]+.*?)(?:\s*\.$|$)/gmi;
-                const contractorMatch = textContent.match(contractorRegex);
+                // Wait for the page to load
+                await page.waitForSelector('.container.py-4');
 
-                // Store the contractor name
-                let contractor;
+                // Get the main container
+                const mainContainer = await page.$('.container.py-4');
 
-                // If contractor is found, remove "възложител" and keep the rest of the text
-                if (contractorMatch && contractorMatch.length > 0) {
-                    contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').trim();
-                } else {
+                // Check if the container exists
+                if (!mainContainer)
+                    throw new Error('The main container that holds the text was not found.');
 
-                    // If no match, split by commas and take the last record
-                    const splitText = textContent.split(',');
-                    contractor = splitText[splitText.length - 1].trim();
-                }
+                // Extract text content from the main container
+                const textContent = await mainContainer.evaluate(node => {
+
+                    // Store the text.
+                    const textParts: string[] = [];
+
+                    // Iterate through all inner containers that contain text
+                    const elements = node.querySelectorAll('div');
+                    elements.forEach(el => {
+
+                        // Check if the container contains text
+                        if (el.textContent) {
+
+                            // Trim surrounding white spaces from the text
+                            const trimmed = el.textContent.trim();
+
+                            // Add the trimmed text to the array if it's not empty
+                            if (trimmed) {
+                                textParts.push(trimmed);
+                            }
+                        }
+                    });
+
+                    // Join the extracted text parts into a single string
+                    return textParts.join(' ');
+                });
 
                 // Format the date
                 const dateRegex = /\d{2}\.\d{2}\.\d{4}/;
@@ -76,15 +99,14 @@ new class RiewWorker extends BaseWorker {
                 // Create crawled data entity with the new data
                 const crawledEntity = {
                     text: textContent,
-                    ...(contractor && { contractor }),
+                    contractor,
                     date: date ? new Date(date.split('.').reverse().join('-')) : null,
                     source_url_id: sourceId,
-                }
+                };
 
                 // Push the crawled entity to the results array
                 crawledData.push(crawledEntity);
-
-            };
+            }
 
             // Build the success message
             const message: WorkerMessage = {
