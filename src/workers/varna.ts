@@ -1,3 +1,10 @@
+/**
+ * Varna adapter
+ * 
+ * @module varna.ts
+ * @author icona <vhristogeorgiew84@gmail.com>
+ */
+
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
