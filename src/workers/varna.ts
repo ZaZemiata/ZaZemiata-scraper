@@ -2,7 +2,7 @@
  * Varna adapter
  * 
  * @module varna.ts
- * @author icona <vhristogeorgiew84@gmail.com>
+ * @author Icona <vhristogeorgiew@yahoo.com>
  */
 
 import BaseWorker from "./baseWorker";
