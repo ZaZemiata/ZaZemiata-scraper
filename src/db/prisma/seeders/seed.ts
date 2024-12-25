@@ -6,6 +6,7 @@ import SourceUrlSeeder from "./sourceUrlSeeder";
 import SettingsSeeder from "./settingSeeder";
 import CrawledDataSeeder from "./crawledDataSeeder";
 import KeyWordSeeder from "./keyWordSeeder";
+import UserSeeder from "./userSeeder";
 
 // Seeder class for the global seeding process
 class Seeder {
@@ -16,6 +17,7 @@ class Seeder {
     settingsSeeder = new SettingsSeeder();
     crawledDataSeeder = new CrawledDataSeeder();
     keyWordSeeder = new KeyWordSeeder();
+    userSeeder = new UserSeeder();
 
     // Drops all data in the correct order by calling drop methods of individual seeders.
     async drop() {
@@ -30,6 +32,7 @@ class Seeder {
             await this.settingsSeeder.drop();
             await this.sourceSeeder.drop();
             await this.keyWordSeeder.drop();
+            await this.userSeeder.drop();
         }
         
         // Catch errors
@@ -58,6 +61,7 @@ class Seeder {
             await this.settingsSeeder.seed();
             await this.keyWordSeeder.seed();
             await this.crawledDataSeeder.seed();
+            await this.userSeeder.seed();
         } 
         
         // Catch errors

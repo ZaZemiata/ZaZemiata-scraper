@@ -1,6 +1,5 @@
 import prisma from "../prisma";
 import logger from "../../../utils/logger";
-import { url } from "inspector";
 
 // Seeder class for the sourceUrls table
 export default class SourceUrlSeeder {
