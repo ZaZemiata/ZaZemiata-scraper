@@ -68,7 +68,7 @@ export default class SourceSeeder {
             {
                 id: 500,
                 site_name: 'Veliko Turnovo',
-                worker_name: 'veliko turnovo',
+                worker_name: 'velikoTurnovo',
                 scrape_frequency_seconds: 5,
                 active: true,
                 created_at: new Date(),
