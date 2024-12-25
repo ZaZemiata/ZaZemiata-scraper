@@ -7,8 +7,10 @@ import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
 import CrawledDataEntry from "../types/crawledDataEntry";
 
-new (class StaraZagora extends BaseWorker {
+new class StaraZagora extends BaseWorker {
+
     async run() {
+
         // Get the source URL
         const url = this.context[0].url;
         const sourceId = Number(this.context[0].sourceUrlId);
@@ -17,6 +19,7 @@ new (class StaraZagora extends BaseWorker {
         let browser;
 
         try {
+
             // Launch the browser
             browser = await puppeteer.launch(browserOptions);
 
@@ -33,20 +36,25 @@ new (class StaraZagora extends BaseWorker {
             const itemContainer = await page.$(".text-modul ul");
 
             // Item container not found
-            if (!itemContainer) throw new Error("Item container not found.");
+            if (!itemContainer)
+                throw new Error("Item container not found.");
 
             // Get the items
             const items = await itemContainer.$$("li");
 
             // Items not found
-            if (items.length === 0) throw new Error("Items not found.");
+            if (items.length === 0)
+                throw new Error("Items not found.");
 
             // Store the crawled data
             const crawledData: CrawledDataEntry[] = [];
 
             // Loop through the items
             for (const item of items) {
+
+                // Extract the data
                 const data = await item.evaluate((el) => {
+
                     // Extract the text and date from the item
                     const textContent = el.textContent?.trim();
 
@@ -54,7 +62,8 @@ new (class StaraZagora extends BaseWorker {
                     const datePattern = /\/Публикувано на (\d{2})\.(\d{2})\.(\d{4}) г\.\//;
 
                     // Skip if the text is empty
-                    if (!textContent) return null;
+                    if (!textContent)
+                        return null;
 
                     // Variables
                     let text = "";
@@ -68,32 +77,34 @@ new (class StaraZagora extends BaseWorker {
 
                     // Parse the date
                     if (dateMatch && dateMatch[1] && dateMatch[2] && dateMatch[3]) {
+
+                        // Extract the date parts
                         const day = dateMatch[1];
                         const month = dateMatch[2];
                         const year = dateMatch[3];
 
+                        // Format the date
                         date = `${year}-${month}-${day}`;
                     }
 
-                    if (date && text) {
-                        return {
-                            text,
-                            date,
-                        };
-                    }
+                    // Return null if the date or text is empty
+                    if (!date || !text)
+                        return null;
 
-                    return null;
+                    // Return text and date
+                    return { text, date };
                 });
 
-                if (data) {
-                    // Push the data to the crawledData array
-                    crawledData.push({
-                        text: data.text,
-                        date: new Date(data.date),
-                        source_url_id: sourceId,
-                        contractor: "Стара Загора",
-                    });
-                }
+                // Skip if the data is empty
+                if (!data)
+                    continue;
+
+                // Push the data to the crawledData array
+                crawledData.push({
+                    text: data.text,
+                    date: new Date(data.date),
+                    source_url_id: sourceId,
+                });
             }
 
             // Build the message
@@ -104,8 +115,13 @@ new (class StaraZagora extends BaseWorker {
 
             // Publish the message
             this.publishMessage(message);
-        } catch (error) {
-            if (!(error instanceof Error)) throw new Error("An unknown error occurred.");
+        } 
+        
+        // Catch errors
+        catch (error) {
+
+            if (!(error instanceof Error)) 
+                throw new Error("An unknown error occurred.");
 
             // Build error message
             const message: WorkerMessage = {
@@ -115,12 +131,17 @@ new (class StaraZagora extends BaseWorker {
 
             // Publish the message
             this.publishMessage(message);
-        } finally {
+        } 
+        
+        // Finally
+        finally {
+
             // Close the browser
-            if (browser) await browser.close();
+            if (browser) 
+                await browser.close();
 
             // Exit the worker
             process.exit();
         }
     }
-})();
+}
