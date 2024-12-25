@@ -36,26 +36,25 @@ new class Shumen extends BaseWorker {
             // Wait for the page to load
             await page.waitForNetworkIdle({ idleTime: 1000 });
 
+            // Store the crawled data
             const crawledData = [];
 
             // Get the paragraphs
-            let paragraphs = await page.$$('p');
-
-            // Remove paragraphs that are not needed
-            paragraphs.splice(0, 2);
+            const paragraphs = await page.$$('xpath=//p[a]');
 
             // Check if the paragraphs are found
-            if (paragraphs.length === 0) {
+            if (paragraphs.length === 0)
                 throw new Error('No paragraphs found');
-            }
 
             // Loop through the paragraphs
             for (const item of paragraphs) {
 
-                let date
-                let text
-                let contractor
+                // Variables
+                let date;
+                let text;
+                let contractor;
 
+                // Get the information
                 const res = await item.evaluate((el) => {
 
                     // Check if the text content is null
@@ -65,23 +64,35 @@ new class Shumen extends BaseWorker {
                     // Get the information
                     const information = el.textContent.split(" ")
 
+                    // Get the date
                     const date = information.shift();
 
+                    // Get the text
                     const text = information.join(" ")
 
+                    // Get the contractor
                     const contractor = text.split(" с възложител")[1]
 
+                    // Return the information
                     return { date, text, contractor }
-
                 })
 
+                // Set the variables
                 date = res.date
                 text = res.text
                 contractor = res.contractor
 
-                // Check if the result is null
-                if (!date || !text || !contractor)
-                    throw new Error('Invalid data or text or contractor');
+                // Date not found
+                if (!date)
+                    throw new Error('Invalid date');
+
+                // Text not found
+                if (!text)
+                    throw new Error('Invalid text');
+
+                // Contractor not found
+                if (!contractor)
+                    throw new Error('Invalid contractor');
 
                 // Create the crawled entity
                 const crawledEntity = {
@@ -93,7 +104,6 @@ new class Shumen extends BaseWorker {
 
                 // Push the crawled entity
                 crawledData.push(crawledEntity);
-
             }
 
             // Build the message
@@ -104,7 +114,6 @@ new class Shumen extends BaseWorker {
 
             // Publish the message
             this.publishMessage(message);
-
         }
 
         // Catch the error
@@ -121,7 +130,6 @@ new class Shumen extends BaseWorker {
 
             // Publish the message
             this.publishMessage(message);
-
         }
 
         // Finally
