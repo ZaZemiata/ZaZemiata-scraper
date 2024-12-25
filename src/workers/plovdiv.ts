@@ -7,7 +7,7 @@ new class RiewWorker extends BaseWorker {
 
     async run() {
 
-        this.context.forEach(async source => {
+        for (const source of this.context) {
 
             // Get the source URL
             const url = source.url;;
@@ -17,6 +17,7 @@ new class RiewWorker extends BaseWorker {
             let browser;
 
             try {
+
                 // Launch the browser
                 browser = await puppeteer.launch(browserOptions);
 
@@ -37,13 +38,13 @@ new class RiewWorker extends BaseWorker {
                 })));
 
                 // Throw an error if no entries found
-                if (entryLinks.length === 0) {
+                if (entryLinks.length === 0) 
                     throw new Error('Entries not found.');
-                }
 
                 // Store the crawled data
                 const crawledData = [];
 
+                // Iterate over the entry links
                 for (const entry of entryLinks) {
 
                     // Extract text and date from the record
@@ -58,6 +59,8 @@ new class RiewWorker extends BaseWorker {
 
                     // If contractor is found, remove "възложител", dot at the end (if there is one) and keep the rest of the text
                     if (contractorMatch && contractorMatch.length > 0) {
+
+                        // Extract the contractor name
                         contractor = contractorMatch[0].replace(/възложител(?:и)?:?\s*/i, '').replace(/\s*\.$/, '').trim();
                     }
 
@@ -67,10 +70,9 @@ new class RiewWorker extends BaseWorker {
                     const date = dateMatch ? dateMatch[0] : null;
 
                     // Date not found or invalid
-                    if (!date) {
+                    if (!date) 
                         throw new Error('Invalid date format.');
-                    }
-
+                    
                     // Create crawled data entity with the new data
                     const crawledEntity = {
                         text: textContent,
@@ -81,7 +83,6 @@ new class RiewWorker extends BaseWorker {
 
                     // Push the crawled entity to the results array
                     crawledData.push(crawledEntity);
-
                 };
 
                 // Build the success message
@@ -93,11 +94,14 @@ new class RiewWorker extends BaseWorker {
                 // Publish the success message
                 this.publishMessage(message);
 
-            } catch (error) {
+            } 
+            
+            // Catch any errors
+            catch (error) {
 
-                if (!(error instanceof Error)) {
+                if (!(error instanceof Error)) 
                     throw new Error('An unknown error occurred.');
-                }
+                
 
                 // Build error message
                 const message: WorkerMessage = {
@@ -107,14 +111,18 @@ new class RiewWorker extends BaseWorker {
 
                 // Publish the error message
                 this.publishMessage(message);
+            } 
+            
+            // Finally
+            finally {
 
-            } finally {
-                if (browser) {
+                // Close the browser
+                if (browser) 
                     await browser.close();
-                }
-
+                
+                // Exit the worker
                 process.exit();
             }
-        });
+        }
     }
 }
