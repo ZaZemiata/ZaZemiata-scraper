@@ -1,4 +1,5 @@
 import prisma from '../../db/prisma/prisma';
+import CrawledDataEntry  from '../../types/crawledDataEntry';
 
 const filterEntriesByKeywords = async (entries: CrawledDataEntry[]): Promise<CrawledDataEntry[]> => {
 
