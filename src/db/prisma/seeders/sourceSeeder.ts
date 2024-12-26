@@ -132,7 +132,7 @@ export default class SourceSeeder {
             {
                 id: 1300,
                 site_name: 'Stara Zagora',
-                worker_name: 'stara zagora',
+                worker_name: 'staraZagora',
                 scrape_frequency_seconds: 5,
                 active: true,
                 created_at: new Date(),
