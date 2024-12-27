@@ -1,7 +1,7 @@
 /**
- * Veliko Turnovo adapter
+ * Veliko Tarnovo adapter
  * 
- * @module velikoTurnovo.ts
+ * @module velikoTarnovo.ts
  * @author Icona <hristogeorgiew@yahoo.com>
  */
 
@@ -11,7 +11,7 @@ import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
 import CrawledDataEntry from "../types/crawledDataEntry";
 
-new class VelikoTurnovo extends BaseWorker {
+new class VelikoTarnovo extends BaseWorker {
 
     async run() {
         // Get the source URL and source ID
