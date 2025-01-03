@@ -9,69 +9,109 @@ new class MoewWorker extends BaseWorker {
 
         for (const source of this.context) {
 
-            // Get the source URL
+            // Extract the source URL and ID
             const url = source.url;
             const sourceId = Number(source.sourceUrlId);
 
-            // Initialize the browser
+            // Declare a variable to hold the browser instance
             let browser;
 
             try {
 
-                // Launch the browser
+                // Launch a new Puppeteer browser instance with specified options
                 browser = await puppeteer.launch(browserOptions);
 
-                // Create a new page
+                // Open a new browser tab
                 const page = await browser.newPage();
 
-                // Go to the source URL
+                // Navigate to the source URL and wait for the DOM to fully load
                 await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-                // Get all entry elements within the document list
+                // Extract all entry articles from the page
                 const entries = await page.$$eval('ul.document-list > li', items => {
                     return items.map(item => {
+
+                        // Extract the article's title
                         const titleElement = item.querySelector('h3.document-title');
+
+                        // Extract the link to the full article
+                        const linkElement = item.querySelector('a');
+
+                        // Extract the article's description
                         const descriptionElement = item.querySelector('p.document-description');
+
+                        // Return the entry details as an object
                         return {
                             text: titleElement ? titleElement.textContent?.trim() : '',
+                            link: linkElement ? linkElement.href : '',
                             description: descriptionElement ? descriptionElement.textContent?.trim() : ''
                         };
-                    }).filter(entry => entry.text && entry.description);
+
+                        // Filter entries to exclude those missing essential information
+                    }).filter(entry => entry.text && entry.description && entry.link);
                 });
 
-                // Throw an error if no entries found
-                if (entries.length === 0)
-                    throw new Error('Entries not found.');
+                // Handle the case where no valid entries are found
+                if (entries.length === 0) throw new Error('Entries not found.');
 
-                // Store the crawled data
+                // Prepare an array to store the crawled data
                 const crawledData = [];
 
-                // Iterate over the entries
+                // Process each entry article
                 for (const entry of entries) {
 
-                    const { text, description } = entry;
+                    // Deconstruct entry details
+                    const { text, description, link } = entry;
 
-                    // Extract date using regex
+                    // Extract and validate the date from the description
                     const dateRegex = /\b\d{2}\.\d{2}\.\d{4}\b/;
                     const dateMatch = description?.match(dateRegex);
                     const date = dateMatch ? dateMatch[0] : null;
 
-                    // Date not found or invalid
-                    if (!date)
-                        throw new Error('Invalid date format.');
+                    // Throw an error if the date is missing or invalid
+                    if (!date) throw new Error('Invalid date format.');
 
-                    // Create crawled data entity with the new data
+                    // Navigate to the full article page
+                    await page.goto(link, { waitUntil: 'domcontentloaded' });
+
+                    // Extract contractor information from the article's content
+                    const contractor = await page.$$eval('div.content-box p', (paragraphs) => {
+
+                        // Define phrases and endings used to identify the contractor
+                        const keyPhrases = ["заявление за издаване на комплексно разрешително", "с възложител"];
+                        const validEndings = ["ЕАД", "ЕООД", "ЕТ", "ООД", "АД"];
+
+                        // Search paragraphs for a contractor match
+                        for (const paragraph of paragraphs) {
+
+                            // Extract and normalize the text content
+                            const text = paragraph.textContent?.trim().toLowerCase();
+
+                            // Use a regex to find contractor details
+                            if (keyPhrases.some(phrase => text?.includes(phrase))) {
+                                const regex = new RegExp(`(${keyPhrases.join('|')}).*?(„[^“]+“\\s*(${validEndings.join('|')}))[.,]?`, 'i');
+                                const match = text?.match(regex);
+
+                                // Return the contractor name if found, with trailing punctuation removed
+                                if (match) return match[2].replace(/[.,]$/, '').trim();
+                            }
+                        }
+                        return null; // Return null if no contractor is found
+                    });
+
+                    // Construct an object to store the crawled data for this entry
                     const crawledEntity = {
                         text,
                         date: date ? new Date(date.split('.').reverse().join('-')) : null,
+                        contractor,
                         source_url_id: sourceId,
                     };
 
-                    // Push the crawled entity to the results array
+                    // Add the crawled entity to the results array
                     crawledData.push(crawledEntity);
-                };
+                }
 
-                // Build the success message
+                // Prepare a success message with the crawled data
                 const message: WorkerMessage = {
                     status: 'completed',
                     data: crawledData,
@@ -80,15 +120,12 @@ new class MoewWorker extends BaseWorker {
                 // Publish the success message
                 this.publishMessage(message);
 
-            } 
-
-            // Catch any errors
-            catch (error) {
-
+            } catch (error) {
+                // Handle errors during processing
                 if (!(error instanceof Error))
                     throw new Error('An unknown error occurred.');
 
-                // Build error message
+                // Prepare an error message with details
                 const message: WorkerMessage = {
                     status: 'error',
                     error: error.message,
@@ -96,16 +133,14 @@ new class MoewWorker extends BaseWorker {
 
                 // Publish the error message
                 this.publishMessage(message);
-            } 
 
-            // Finally
-            finally {
+            } finally {
 
-                // Close the browser
+                // Ensure the browser is closed to free resources
                 if (browser)
                     await browser.close();
 
-                // Exit the worker
+                // Terminate the worker process
                 process.exit();
             }
         }
