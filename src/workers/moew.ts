@@ -29,6 +29,8 @@ new class MoewWorker extends BaseWorker {
 
                 // Extract all entry articles from the page
                 const entries = await page.$$eval('ul.document-list > li', items => {
+
+                    // Map each entry article to an object with essential details
                     return items.map(item => {
 
                         // Extract the article's title
@@ -69,7 +71,8 @@ new class MoewWorker extends BaseWorker {
                     const date = dateMatch ? dateMatch[0] : null;
 
                     // Throw an error if the date is missing or invalid
-                    if (!date) throw new Error('Invalid date format.');
+                    if (!date) 
+                        throw new Error('Invalid date format.');
 
                     // Navigate to the full article page
                     await page.goto(link, { waitUntil: 'domcontentloaded' });
@@ -89,14 +92,20 @@ new class MoewWorker extends BaseWorker {
 
                             // Use a regex to find contractor details
                             if (keyPhrases.some(phrase => text?.includes(phrase))) {
+
+                                // Construct a regex pattern to match the contractor name
                                 const regex = new RegExp(`(${keyPhrases.join('|')}).*?(„[^“]+“\\s*(${validEndings.join('|')}))[.,]?`, 'i');
+
+                                // Extract the contractor name from the text
                                 const match = text?.match(regex);
 
                                 // Return the contractor name if found, with trailing punctuation removed
-                                if (match) return match[2].replace(/[.,]$/, '').trim();
+                                if (!match) 
+                                    return null;
+
+                                return match[2].replace(/[.,]$/, '').trim();
                             }
                         }
-                        return null; // Return null if no contractor is found
                     });
 
                     // Construct an object to store the crawled data for this entry
@@ -119,8 +128,11 @@ new class MoewWorker extends BaseWorker {
 
                 // Publish the success message
                 this.publishMessage(message);
+            } 
+            
+            // Catch errors
+            catch (error) {
 
-            } catch (error) {
                 // Handle errors during processing
                 if (!(error instanceof Error))
                     throw new Error('An unknown error occurred.');
@@ -133,8 +145,10 @@ new class MoewWorker extends BaseWorker {
 
                 // Publish the error message
                 this.publishMessage(message);
-
-            } finally {
+            } 
+            
+            // Finally block
+            finally {
 
                 // Ensure the browser is closed to free resources
                 if (browser)
