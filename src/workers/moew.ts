@@ -2,6 +2,7 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
+import CrawledDataEntry from "../types/crawledDataEntry";
 
 new class MoewWorker extends BaseWorker {
 
@@ -57,7 +58,7 @@ new class MoewWorker extends BaseWorker {
                 if (entries.length === 0) throw new Error('Entries not found.');
 
                 // Prepare an array to store the crawled data
-                const crawledData = [];
+                const crawledData : CrawledDataEntry[] = [];
 
                 // Process each entry article
                 for (const entry of entries) {
@@ -109,10 +110,10 @@ new class MoewWorker extends BaseWorker {
                     });
 
                     // Construct an object to store the crawled data for this entry
-                    const crawledEntity = {
-                        text,
-                        date: date ? new Date(date.split('.').reverse().join('-')) : null,
-                        contractor,
+                    const crawledEntity : CrawledDataEntry = {
+                        text: text || '',
+                        date: new Date(date.split('.').reverse().join('-')),
+                        ...(contractor && { contractor }),
                         source_url_id: sourceId,
                     };
 
