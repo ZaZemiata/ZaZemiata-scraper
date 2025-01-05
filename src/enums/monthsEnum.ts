@@ -1,6 +1,6 @@
 export enum monthsEnum {
     "Януари" = 1,
-    "Февруари"= 2,
+    "Февруари" = 2,
     "Март"= 3,
     "Април"= 4,
     "Май"= 5,
@@ -12,3 +12,5 @@ export enum monthsEnum {
     "Ноември"= 11,
     "Декември"= 12,
 };
+
+export type MonthName = keyof typeof monthsEnum;
