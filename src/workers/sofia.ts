@@ -39,29 +39,40 @@ new class Sofia extends BaseWorker {
 
             const crawledData: CrawledDataEntry[] = [];
 
+            let contractor = ''; // Store contractor information
+            let text = ''; // Store the main text
+
             for (const paragraph of paragraphs) {
                 const data = await paragraph.evaluate((el) => {
                     const textContent = el.textContent?.trim();
-                    return { text: textContent || '' };
+                    const style = el.getAttribute('style') || '';
+                    return { text: textContent || '', style };
                 });
 
                 if (!data.text) continue;
 
-                // Updated regex for "Възложител" extraction
-                const contractorMatch = data.text.match(/(?:Възложител|Възложителя)[:\s]*(.*?)(?=[\n.,;]|\s*$)/i);
-                const contractor = contractorMatch ? contractorMatch[1].replace(/[„”"]/g, '').trim() : '';
-
-                // Updated regex for date extraction
-                const dateMatch = data.text.match(/(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4}-\d{2}-\d{2})/);
-                const date = dateMatch ? new Date(dateMatch[0].split('.').reverse().join('-')) : new Date();
-
-                crawledData.push({
-                    text: data.text,
-                    ...(contractor && { contractor }),
-                    date,
-                    source_url_id: sourceId,
-                });
+                if (data.style.includes('text-align: center')) {
+                    // Extract contractor from centered paragraphs
+                    contractor = data.text.replace(/[„”"]/g, '').trim();
+                } else if (data.style.includes('text-align: justify')) {
+                    // Extract main text from justified paragraphs
+                    text += (text ? '\n' : '') + data.text;
+                }
             }
+
+            if (!text) throw new Error("No main text found!");
+            if (!contractor) console.warn("No contractor information found!");
+
+            // Extract date from text
+            const dateMatch = text.match(/(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4}-\d{2}-\d{2})/);
+            const date = dateMatch ? new Date(dateMatch[0].split('.').reverse().join('-')) : new Date();
+
+            crawledData.push({
+                text,
+                contractor,
+                date,
+                source_url_id: sourceId,
+            });
 
             const message: WorkerMessage = {
                 status: 'completed',
