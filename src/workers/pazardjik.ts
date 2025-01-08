@@ -53,6 +53,7 @@ new class RiewWorker extends BaseWorker {
                             // Extract the main text content of the list item, excluding the date
                             const text = li.textContent
                                 ?.replace(date, "") // Remove the date text
+                                .replace(/\s+/g, " ") // Replace multiple spaces with a single space
                                 .trim() || "";
 
                             // Return the extracted values
