@@ -28,42 +28,67 @@ new class RiewWorker extends BaseWorker {
                 // Go to the source URL
                 await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-                // Directly get data from all `accordion-inner` divs
+                // Extract data from all `accordion-inner` divs on the page
                 const entries = await page.$$eval(".accordion-inner", (innerDivs) => {
                     return innerDivs.flatMap(innerDiv => {
-                        const listItems = innerDiv.querySelectorAll("ul li");
-                        return Array.from(listItems).map(li => {
-                            const dateSpan = li.querySelector(".label.pull-left");
-                            const date = dateSpan?.textContent?.trim() || "";
-                            const aTag = li.querySelector("a");
-                            const text = li.textContent?.replace(date, "").trim() || "";
 
-                            return { date, text, aText: aTag?.textContent?.trim() || "" };
+                        // Get all list items inside the current `accordion-inner` div
+                        const listItems = innerDiv.querySelectorAll("ul li");
+
+                        // Process each list item to extract relevant data
+                        return Array.from(listItems).map(li => {
+
+                            // Find the span containing the date information within the list item
+                            const dateSpan = li.querySelector(".label.pull-left");
+
+                            // Extract and clean the date text from the span tag
+                            const date = dateSpan?.textContent?.trim() || "";
+
+                            // Locate the anchor tag inside the list item, which links to the full article
+                            const aTag = li.querySelector("a");
+
+                            // Get the title from the achor tag
+                            const title = aTag?.textContent?.trim() || "";
+
+                            // Extract the main text content of the list item, excluding the date
+                            const text = li.textContent
+                                ?.replace(date, "") // Remove the date text
+                                .trim() || "";
+
+                            // Return the extracted values
+                            return { date, text, title };
                         });
                     });
                 });
 
+                // Store the crawled data
                 const crawledData = [];
 
+                // Iterate over the entries
                 for (const entry of entries) {
-                    const { text: textContent, date: dateString, aText } = entry;
-
-                    // Define the fallback regex for "от"
-                    const fromRegex = /от\s(.+)/;
+                    const { text: textContent, date: dateString, title: title } = entry;
 
                     // Define the main regex for contractors
-                    const contractorRegex = /възложител(?:и)?:?\s*([^.\n]+.*?)(?:\s*\.$|$)/gmi;
+                    const contractorRegex = /от\s(.+)/;
 
-                    // Contractor extraction logic
+                    // Define the fallback regex
+                    const contractorFallbackRegex = /възложител(?:и)?:?\s*([^.\n]+.*?)(?:\s*\.$|$)/gmi;
+
+                    // Store the contractor
                     let contractor;
-                    const fromMatch = aText.match(fromRegex);
 
+                    // Attempt to extract the contractor's name using the main regex on the title
+                    const fromMatch = title.match(contractorRegex);
+
+                    // If a match is found, clean and store the contractor's name
                     if (fromMatch) {
-                        // If the new regex finds a match, use it
                         contractor = fromMatch[1].trim();
                     } else {
-                        // Fall back to the main regex
-                        const contractorMatch = textContent.match(contractorRegex);
+
+                        // If no match is found, fall back to the second regex on the main text content
+                        const contractorMatch = textContent.match(contractorFallbackRegex);
+
+                        // If a match is found, clean and store the contractor's name
                         if (contractorMatch && contractorMatch.length > 0) {
                             contractor = contractorMatch[0]
                                 .replace(/възложител(?:и)?:?\s*/i, '')
@@ -77,15 +102,18 @@ new class RiewWorker extends BaseWorker {
                     const dateMatch = dateString.match(dateRegex);
                     const date = dateMatch ? dateMatch[0] : null;
 
+                    // Date not found or invalid
                     if (!date) throw new Error('Invalid date format.');
 
+                    // Create crawled data entity with the new data
                     const crawledEntity = {
                         text: textContent,
                         ...(contractor && { contractor }),
                         date: date ? new Date(date.split('.').reverse().join('-')) : null,
                         source_url_id: sourceId,
                     };
-                    logger.info(crawledEntity.contractor);
+
+                    // Push the crawled entity to the results array
                     crawledData.push(crawledEntity);
                 }
 
