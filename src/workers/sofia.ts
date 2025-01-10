@@ -38,6 +38,7 @@ new class Sofia extends BaseWorker {
             // Extract all the year links
             const yearLinks = await page.$$(linkSelector);
 
+            // Links not found
             if (yearLinks.length === 0)
                 throw new Error("No year links found!");
 
@@ -60,22 +61,35 @@ new class Sofia extends BaseWorker {
 
             // Extract the announcements content within the container
             const sections = await page.evaluate(() => {
+
+                // Initialize the array for storing sections
                 const results: { text: string; style: string }[][] = [];
+
+                // Find the main content container
                 const container = document.querySelector('div.item-page');
 
+                // Return an empty array if the container is not found
                 if (!container) return results;
 
+                // Initialize the array for storing the current section
                 let current: { text: string; style: string }[] = [];
 
                 // Loop through all <p> and <hr> elements in the container
                 container.querySelectorAll('p, hr').forEach((el) => {
+
+                    // Check for horizontal rule to split sections
                     if (el.tagName === 'HR') {
+
                         // Save the current section and start a new one
                         if (current.length > 0) {
                             results.push([...current]);
                             current = [];
                         }
-                    } else {
+                    } 
+                    
+                    // Else, add the text content to the current section
+                    else {
+
                         // Collect the text content and style attributes
                         current.push({
                             text: el.textContent?.trim() || '',
@@ -84,10 +98,12 @@ new class Sofia extends BaseWorker {
                     }
                 });
 
+                // Add the last section if it contains data
                 if (current.length > 0) {
                     results.push([...current]);
                 }
 
+                // Return the array of sections
                 return results;
             });
 
@@ -96,22 +112,42 @@ new class Sofia extends BaseWorker {
 
             // Process each section to extract relevant information
             for (const section of sections) {
+
+                // Initialize variables for storing data
                 let contractor = '';
                 let text = '';
                 let date: Date | null = null;
 
+                // Loop through all data elements in the section
                 for (const data of section) {
+
+                    // Skip empty text content
                     if (!data.text) continue;
 
                     // Check for center-aligned text (date or contractor)
                     if (data.style.includes('text-align: center')) {
+
+                        // Check for date or contractor
                         const dateMatch = data.text.match(/\d{2}\.\d{2}\.\d{4}/);
+
+                        // Date found
                         if (dateMatch) {
+
+                            // Parse the date and store it
                             date = new Date(dateMatch[0].split('.').reverse().join('-'));
-                        } else {
+                        } 
+                        
+                        // Contractor found
+                        else {
+
+                            // Remove quotes and store the contractor
                             contractor = data.text.replace(/[„”"]/g, '').trim();
                         }
-                    } else if (data.style.includes('text-align: justify')) {
+                    } 
+                    
+                    // Check for justified text content
+                    else if (data.style.includes('text-align: justify')) {
+
                         // Collect justified text content
                         text += (text ? '\n' : '') + data.text;
                     }
@@ -144,20 +180,28 @@ new class Sofia extends BaseWorker {
                 data: crawledData,
             };
 
+            // Publish the success message
             this.publishMessage(message);
-
-        } catch (error) {
+        } 
+        
+        // Catch and handle any errors
+        catch (error) {
             // Build and publish an error message
             const message: WorkerMessage = {
                 status: 'error',
                 error: error instanceof Error ? error.message : 'Unknown error occurred.',
             };
 
+            // Publish the error message
             this.publishMessage(message);
+        } 
+        
+        // Ensure the browser is closed
+        finally {
 
-        } finally {
             // Close the browser
-            if (browser) await browser.close();
+            if (browser) 
+                await browser.close();
 
             // Exit the worker
             process.exit();
