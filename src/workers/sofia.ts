@@ -5,122 +5,161 @@ import WorkerMessage from "../types/workerMessage";
 import CrawledDataEntry from "../types/crawledDataEntry";
 
 new class Sofia extends BaseWorker {
+
     async run() {
+
+        // Get the base URL and source ID from the context
         const baseUrl = this.context[0].url;
         const sourceId = Number(this.context[0].sourceUrlId);
 
+        // Initialize the browser
         let browser;
 
         try {
+
             // Launch the browser
             browser = await puppeteer.launch(browserOptions);
+
+            // Create a new page
             const page = await browser.newPage();
 
-            // Go to the URL
+            // Navigate to the base URL
             await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+
+            // Wait briefly to ensure all content is loaded
             await new Promise((resolve) => setTimeout(resolve, 5000));
 
-            // Select all the links that lead to the years (first link from <h3>)
+            // Define the selector for year links (first <a> within <h3>)
             const linkSelector = 'h3 > a';
 
-            // Wait for the links to be available
+            // Wait for the links to appear
             await page.waitForSelector(linkSelector, { timeout: 10000 });
 
             // Extract all the year links
             const yearLinks = await page.$$(linkSelector);
 
-            if (yearLinks.length === 0) throw new Error("No year links found!");
+            if (yearLinks.length === 0)
+                throw new Error("No year links found!");
 
-            const crawledData: CrawledDataEntry[] = [];
-
-            // Click only the first link
+            // Click the first year link
             const firstLink = yearLinks[0];
             await firstLink.click();
 
             try {
-                // Wait for navigation after the click
+                // Wait for the page to load after clicking
                 await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 });
             } catch (navError) {
                 console.warn("Navigation took too long. Continuing...");
             }
 
-            // Select the container with the announcements
+            // Define the selector for the main content container
             const containerSelector = 'div.item-page';
+
+            // Wait for the container to be available
             await page.waitForSelector(containerSelector, { timeout: 10000 });
 
-            // Get the container with the content
-            const announcementsContainer = await page.$(containerSelector);
-            if (!announcementsContainer) throw new Error("Announcements container not found!");
+            // Extract the announcements content within the container
+            const sections = await page.evaluate(() => {
+                const results: { text: string; style: string }[][] = [];
+                const container = document.querySelector('div.item-page');
 
-            // Get all paragraphs (<p>) in the container
-            const paragraphs = await announcementsContainer.$$('p');
-            if (paragraphs.length === 0) throw new Error("No announcements found in paragraphs!");
+                if (!container) return results;
 
-            let contractor = ''; // Store contractor information
-            let text = ''; // Store the main text
-            let date: Date | null = null; // Store the date
+                let current: { text: string; style: string }[] = [];
 
-            // Loop through all paragraphs
-            for (const paragraph of paragraphs) {
-                const data = await paragraph.evaluate((el) => {
-                    const textContent = el.textContent?.trim();
-                    const style = el.getAttribute('style') || '';
-                    return { text: textContent || '', style };
+                // Loop through all <p> and <hr> elements in the container
+                container.querySelectorAll('p, hr').forEach((el) => {
+                    if (el.tagName === 'HR') {
+                        // Save the current section and start a new one
+                        if (current.length > 0) {
+                            results.push([...current]);
+                            current = [];
+                        }
+                    } else {
+                        // Collect the text content and style attributes
+                        current.push({
+                            text: el.textContent?.trim() || '',
+                            style: el.getAttribute('style') || '',
+                        });
+                    }
                 });
 
-                if (!data.text) continue;
+                if (current.length > 0) {
+                    results.push([...current]);
+                }
 
-                // Check if the paragraph is for contractor, text, or date based on style
-                if (data.style.includes('text-align: center')) {
-                    // Extract contractor or date from centered paragraphs
-                    const dateMatch = data.text.match(/\d{2}\.\d{2}\.\d{4}/);
-                    if (dateMatch) {
-                        // If a date is found, save it
-                        date = new Date(dateMatch[0].split('.').reverse().join('-'));
-                    } else {
-                        // Otherwise, extract the contractor
-                        contractor = data.text.replace(/[„”"]/g, '').trim();
+                return results;
+            });
+
+            // Initialize the array for storing crawled data
+            const crawledData: CrawledDataEntry[] = [];
+
+            // Process each section to extract relevant information
+            for (const section of sections) {
+                let contractor = '';
+                let text = '';
+                let date: Date | null = null;
+
+                for (const data of section) {
+                    if (!data.text) continue;
+
+                    // Check for center-aligned text (date or contractor)
+                    if (data.style.includes('text-align: center')) {
+                        const dateMatch = data.text.match(/\d{2}\.\d{2}\.\d{4}/);
+                        if (dateMatch) {
+                            date = new Date(dateMatch[0].split('.').reverse().join('-'));
+                        } else {
+                            contractor = data.text.replace(/[„”"]/g, '').trim();
+                        }
+                    } else if (data.style.includes('text-align: justify')) {
+                        // Collect justified text content
+                        text += (text ? '\n' : '') + data.text;
                     }
-                } else if (data.style.includes('text-align: justify')) {
-                    // Extract the main text from justified paragraphs
-                    text += (text ? '\n' : '') + data.text;
+                }
+
+                // Default to the current date if no date was found
+                if (!date) {
+                    date = new Date();
+                }
+
+                // Add the entry if text content exists
+                if (text) {
+                    crawledData.push({
+                        text,
+                        contractor,
+                        date,
+                        source_url_id: sourceId,
+                    });
                 }
             }
 
-            // If no main text is found, throw an error
-            if (!text) throw new Error("No main text found!");
-            if (!contractor) console.warn("No contractor information found!");
-            if (!date) date = new Date(); // Default to current date if no date is found
+            // Throw an error if no valid data was collected
+            if (crawledData.length === 0) {
+                throw new Error("No valid data found!");
+            }
 
-            // Add the data to the crawled data array
-            crawledData.push({
-                text,
-                contractor,
-                date,
-                source_url_id: sourceId,
-            });
-
-            // Build the message
+            // Build and publish a success message
             const message: WorkerMessage = {
                 status: 'completed',
                 data: crawledData,
             };
 
-            // Publish the message
             this.publishMessage(message);
+
         } catch (error) {
-            // Build an error message
+            // Build and publish an error message
             const message: WorkerMessage = {
                 status: 'error',
                 error: error instanceof Error ? error.message : 'Unknown error occurred.',
             };
 
-            // Publish the error message
             this.publishMessage(message);
+
         } finally {
             // Close the browser
             if (browser) await browser.close();
-            // Exit the process
+
+            // Exit the worker
             process.exit();
         }
     }
