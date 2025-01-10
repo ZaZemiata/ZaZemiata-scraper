@@ -40,7 +40,7 @@ new class Burgas extends BaseWorker {
             await page.goto(url, { waitUntil: 'domcontentloaded' });
 
             // Wait for the page to load
-            await page.waitForNetworkIdle({ idleTime: 15000 });
+            await page.waitForNetworkIdle({ idleTime: 1000 });
 
             // Get the item container
             const container = await page.$('.single_page_content');
