@@ -77,7 +77,7 @@ export default class SourceUrlSeeder {
             },
             {
                 id: 700,
-                url: 'https://new.riewpz.org/main.php?module=info&object=info&action=view&inf_id=169',
+                url: 'https://new.riewpz.org/main.php?module=documents&object=category&action=list&doc_cat_id=35',
                 active: true,
                 created_at: new Date(),
                 source_id: 700,
