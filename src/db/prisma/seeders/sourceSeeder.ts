@@ -91,6 +91,7 @@ export default class SourceSeeder {
                 id: 700,
                 site_name: 'Pazardzhik',
                 worker_name: 'pazardzhik',
+                display_name: 'РИОСВ - Пазарджик',
                 scrape_frequency_seconds: 5,
                 active: true,
                 created_at: new Date(),
