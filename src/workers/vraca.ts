@@ -9,11 +9,14 @@ new class VracaWorker extends BaseWorker {
 
     async run() {
 
+        // Iterate over all sources
         for (const source of this.context) {
 
             // Get the source URL
             const { url, sourceUrlId } = source;
             const sourceId = Number(sourceUrlId);
+
+            console.log(`Crawling ${url}...`);
 
             // Initialize the browser
             let browser;
@@ -125,6 +128,7 @@ new class VracaWorker extends BaseWorker {
         }
     }
 
+    // Parse date helper function
     private parseDate(headerText: string | null): Date {
 
         // Date header text not found
@@ -153,5 +157,4 @@ new class VracaWorker extends BaseWorker {
         // Return the formated date
         return new Date(Number(year), month, 1);
     }
-
 }
