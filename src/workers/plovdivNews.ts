@@ -2,6 +2,7 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
+import CrawledDataEntry from "../types/crawledDataEntry";
 
 new class RiewWorker extends BaseWorker {
 
@@ -41,7 +42,7 @@ new class RiewWorker extends BaseWorker {
             }
 
             // Store the crawled data
-            const crawledData = [];
+            const crawledData : CrawledDataEntry[] = [];
 
             for (const entry of entryLinks) {
                 const { url: entryUrl, text: contractor, date: dateString } = entry;
@@ -97,10 +98,10 @@ new class RiewWorker extends BaseWorker {
                 }
 
                 // Create crawled data entity with the new data
-                const crawledEntity = {
+                const crawledEntity : CrawledDataEntry = {
                     text: textContent,
                     contractor,
-                    date: date ? new Date(date.split('.').reverse().join('-')) : null,
+                    date: new Date(date.split('.').reverse().join('-')),
                     source_url_id: sourceId,
                 };
 
