@@ -83,8 +83,8 @@ export default class SourceSeeder {
             },
             {
                 id: 700,
-                site_name: 'Pazardjik',
-                worker_name: 'pazardjik',
+                site_name: 'Pazardzhik',
+                worker_name: 'pazardzhik',
                 scrape_frequency_seconds: 5,
                 active: true,
                 created_at: new Date(),

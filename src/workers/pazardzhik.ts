@@ -2,9 +2,8 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
-import logger from "../utils/logger";
 
-new class RiewWorker extends BaseWorker {
+new class PazardzhikWorker extends BaseWorker {
 
     async run() {
 
@@ -132,6 +131,7 @@ new class RiewWorker extends BaseWorker {
             // Catch any errors
             catch (error) {
 
+                // If the error is not an instance of Error, throw a new error
                 if (!(error instanceof Error))
                     throw new Error('An unknown error occurred.');
 
