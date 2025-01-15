@@ -2,6 +2,7 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
+import CrawledDataEntry from "../types/crawledDataEntry";
 
 new class RiewWorker extends BaseWorker {
 
@@ -42,7 +43,7 @@ new class RiewWorker extends BaseWorker {
                     throw new Error('Entries not found.');
 
                 // Store the crawled data
-                const crawledData = [];
+                const crawledData : CrawledDataEntry[] = [];
 
                 // Iterate over the entry links
                 for (const entry of entryLinks) {
@@ -74,10 +75,10 @@ new class RiewWorker extends BaseWorker {
                         throw new Error('Invalid date format.');
                     
                     // Create crawled data entity with the new data
-                    const crawledEntity = {
+                    const crawledEntity: CrawledDataEntry = {
                         text: textContent,
                         ...(contractor && { contractor }),
-                        date: date ? new Date(date.split('.').reverse().join('-')) : null,
+                        date: new Date(date.split('.').reverse().join('-')),
                         source_url_id: sourceId,
                     }
 

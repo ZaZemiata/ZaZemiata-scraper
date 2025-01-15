@@ -18,6 +18,7 @@ model Sources {
   id                       BigInt    @id
   site_name                String
   worker_name              String
+  display_name             String
   last_scrape_time         DateTime?
   scrape_frequency_seconds Float
   active                   Boolean
@@ -63,7 +64,7 @@ model CrawledData {
   source_url_id BigInt
   SourceUrls    SourceUrls @relation(fields: [source_url_id], references: [id])
 
-  @@unique([text, contractor, date, source_url_id])
+  @@unique([contractor, date, source_url_id])
 }
 
 // Settings model
