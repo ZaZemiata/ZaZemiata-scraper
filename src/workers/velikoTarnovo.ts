@@ -31,15 +31,6 @@ new class VelikoTarnovo extends BaseWorker {
             // Go to the source URL
             await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-            // Wait for and close the cookie banner if present
-            try {
-                await page.waitForSelector('.cmplz-cookiebanner', { visible: true, timeout: 5000 });
-                await page.click('.cmplz-btn.cmplz-accept');
-                await page.waitForSelector('.cmplz-cookiebanner', { hidden: true });
-            } catch (error) {
-                // If the cookie banner is not found, ignore the error
-            }
-
             // Wait for the container to load
             await page.waitForSelector('div.art-postcontent');
 
@@ -81,8 +72,9 @@ new class VelikoTarnovo extends BaseWorker {
                     continue;
 
                 // Extract the contractor from the text using regex
-                const contractorMatch = data.text.match(/възложител[:\s]*(.*?)(?=[\n.,]|\s*$)/i);
-                const contractor = contractorMatch ? contractorMatch[1].replace(/[„”"]/g, '').trim() : '';
+                const contractorMatch = data.text.match(/възложител\s*[:–-]?\s*„?([^„”"]*?)”?(\s*\/.*)?$/im);
+                const contractor = contractorMatch ? contractorMatch[1].trim() : '';
+
 
                 // Parse the date (defaulting to the current date if not found in the text)
                 const dateMatch = data.text.match(/\d{2}\.\d{2}\.\d{4}/);
@@ -121,11 +113,9 @@ new class VelikoTarnovo extends BaseWorker {
 
         // Close the browser
         finally {
-            // Close the browser
             if (browser)
                 await browser.close();
 
-            // Exit the worker
             process.exit();
         }
     }
