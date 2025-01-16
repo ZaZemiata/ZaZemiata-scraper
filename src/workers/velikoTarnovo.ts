@@ -72,7 +72,7 @@ new class VelikoTarnovo extends BaseWorker {
                     continue;
 
                 // Extract the contractor from the text using regex
-                const contractorMatch = data.text.match(/възложител\s*[:–-]?\s*„?([^„”"]*?)”?(\s*\/.*)?$/im);
+                const contractorMatch = data.text.match(/възложител\s+(.*?)(\/отг\. на\s+\d{2}\.\d{2}\.\d{4}\s+г\.\/?)$/im);
                 const contractor = contractorMatch ? contractorMatch[1].trim() : '';
 
 
