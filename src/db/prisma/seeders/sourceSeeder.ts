@@ -71,8 +71,8 @@ export default class SourceSeeder {
             },
             {
                 id: 500,
-                site_name: 'Veliko Turnovo',
-                worker_name: 'velikoTurnovo',
+                site_name: 'Veliko Tarnovo',
+                worker_name: 'velikoTarnovo',
                 display_name: 'РИОСВ - Велико Търново',
                 scrape_frequency_seconds: 5,
                 active: true,
