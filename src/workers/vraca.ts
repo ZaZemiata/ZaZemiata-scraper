@@ -16,8 +16,6 @@ new class VracaWorker extends BaseWorker {
             const { url, sourceUrlId } = source;
             const sourceId = Number(sourceUrlId);
 
-            console.log(`Crawling ${url}...`);
-
             // Initialize the browser
             let browser;
 
