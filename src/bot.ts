@@ -165,6 +165,14 @@ export const crawlPendingTasks = async (): Promise<void> => {
                                 completed_at: new Date(),
                             },
                         }),
+
+                        // Update last scrape time
+                        prisma.sources.update({
+                            where: { id: task.source_id },
+                            data: {
+                                last_scrape_time: new Date()
+                            },
+                        }),
                     ]);
 
                     // Log success
