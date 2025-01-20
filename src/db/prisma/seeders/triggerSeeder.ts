@@ -37,6 +37,8 @@ export default class TriggerSeeder {
 
     // Seeds the trigger and associated function
     async seed() {
+
+        // Prepare for errors
         try {
             
             // Create the trigger function
@@ -44,8 +46,13 @@ export default class TriggerSeeder {
                 CREATE OR REPLACE FUNCTION crawl_tasks_before_update_function()
                 RETURNS TRIGGER AS $$
                 BEGIN
+
+                    IF NEW.status = 'IN_PROGRESS' THEN
+                        NEW.started_at := NOW();
+                    END IF;
+                
                     IF NEW.status = 'COMPLETED' THEN
-                        NEW.crawl_duration_seconds := EXTRACT(EPOCH FROM (NEW.completed_at - NEW.created_at));
+                        NEW.crawl_duration_seconds := EXTRACT(EPOCH FROM (NEW.completed_at - NEW.started_at));
                     END IF;
                     RETURN NEW;
                 END;
