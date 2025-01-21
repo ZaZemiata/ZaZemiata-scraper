@@ -70,7 +70,7 @@ new class Varna extends BaseWorker {
                     continue;
 
                 // Extract the contractor from the text using regex
-                const contractorMatch = data.text.match(/възложител[:\s]*(.*?)(?=[\n.,]|\s*$)/i);
+                const contractorMatch = data.text.match(/възложител(?:[:\s\-]*)\s*([А-Яа-яA-Za-z0-9\s,„”"&\-\.]+?)(?=\s*(?=\s*(?:\(|\n|$)|отговорено\s*от))/i);
                 const contractor = contractorMatch ? contractorMatch[1].replace(/[„”"]/g, '').trim() : '';
 
                 // Parse the date (defaulting to the current date if not found in the text)
@@ -84,40 +84,40 @@ new class Varna extends BaseWorker {
                     date,
                     source_url_id: sourceId,
                 });
-        }
+            }
 
             // Build the message
             const message: WorkerMessage = {
-            status: 'completed',
-            data: crawledData,
-        };
+                status: 'completed',
+                data: crawledData,
+            };
 
-        // Publish the message
-        this.publishMessage(message);
-    }
+            // Publish the message
+            this.publishMessage(message);
+        }
 
-    // Catch errors
-    catch(error) {
+        // Catch errors
+        catch (error) {
 
-        // Build an error message
-        const message: WorkerMessage = {
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error occurred.',
-        };
+            // Build an error message
+            const message: WorkerMessage = {
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Unknown error occurred.',
+            };
 
-        // Publish the error message
-        this.publishMessage(message);
-    }
+            // Publish the error message
+            this.publishMessage(message);
+        }
 
         // Close the browser
         finally {
 
-    // Close the browser
-    if (browser)
-        await browser.close();
+            // Close the browser
+            if (browser)
+                await browser.close();
 
-    // Exit the worker
-    process.exit();
-}
+            // Exit the worker
+            process.exit();
+        }
     }
 };
