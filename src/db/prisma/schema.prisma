@@ -94,7 +94,7 @@ model Users {
   email     String   @unique @db.VarChar(128)
   password  String   @db.VarChar(128)
   is_admin  Boolean  @default(false)
-  is_active Boolean  @default(true)
+  active Boolean  @default(true)
   created_at DateTime @default(now())
 }
 
