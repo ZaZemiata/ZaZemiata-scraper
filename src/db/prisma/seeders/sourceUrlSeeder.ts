@@ -70,7 +70,7 @@ export default class SourceUrlSeeder {
             },
             {
                 id: 600,
-                url: 'https://www.riosvt.org/ovos/uvedomlenia/',
+                url: 'https://www.riosv-montana.com/pd/docprd/cat_view/73---/154-/212------',
                 active: true,
                 created_at: new Date(),
                 source_id: 600,
