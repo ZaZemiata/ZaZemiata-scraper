@@ -27,7 +27,7 @@ let activeWorkers = 0;
 export const crawlPendingTasks = async (): Promise<void> => {
 
     // Log starting message
-    logger.info('Crawling pending tasks...');
+    // logger.info('Crawling pending tasks...');
 
     // Fetch pending tasks
     const pendingTasks = await prisma.crawlTasks.findMany({

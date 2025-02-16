@@ -10,6 +10,7 @@ import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
 import { browserOptions } from "../config";
 import WorkerMessage from "../types/workerMessage";
+import logger from "../utils/logger";
 
 new class Smolyan extends BaseWorker {
 
@@ -39,34 +40,8 @@ new class Smolyan extends BaseWorker {
             // Store the crawled data
             const crawledData = [];
 
-            //  Get the container
-            const container = await page.$('div.tab-content');
-
-            // Check if the container is not found
-            if (!container)
-                throw new Error('Container not found.');
-
-            // Get the current date
-            const now = new Date();
-
-            // Get the current year as a number
-            const year = now.getFullYear();
-
-            // Get the current year tab
-            let currentYear = await container.$(`#tab-${year}`);
-
-            // Check if the current year is not found
-            if (!currentYear)
-
-                // Get the previous year tab
-                currentYear = await container.$(`#tab-${year - 1}`);
-
-                // Check if the previous year is not found
-            if (!currentYear)
-                throw new Error('Current year not found.');
-
             // Get the items
-            const items = await currentYear.$$('li');
+            const items = await page.$$('li.list-group-item');
 
             //Check if items not found
             if (items.length === 0)
@@ -119,7 +94,7 @@ new class Smolyan extends BaseWorker {
                 const res = await article.evaluate((el) => {
 
                     // Get the date
-                    const date = el.querySelector("p.label")?.textContent
+                    const date = el.querySelector("p.small")?.textContent?.trim().split("Дата на публикуване: ")[1].trim().split(" ")[0].split(".");
 
                     // Get the spans
                     const spans = el.querySelectorAll("span")
@@ -165,7 +140,7 @@ new class Smolyan extends BaseWorker {
                         throw new Error('Date not found.');
 
                     // Return the extracted data
-                    return { date: date.split("."), text: textInArray.join(" ") }
+                    return { date: date, text: textInArray.join(" ") }
 
                 });
 
