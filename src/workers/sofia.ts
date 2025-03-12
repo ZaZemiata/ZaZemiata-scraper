@@ -44,6 +44,10 @@ new class Sofia extends BaseWorker {
 
             // Click the first year link
             const firstLink = yearLinks[0];
+            
+            // Get the href attribute before clicking
+            const sourceArticle = await page.evaluate(link => link.href, firstLink);
+            
             await firstLink.click();
 
             try {
@@ -165,6 +169,7 @@ new class Sofia extends BaseWorker {
                         contractor,
                         date,
                         source_url_id: sourceId,
+                        sourceArticle,
                     });
                 }
             }
