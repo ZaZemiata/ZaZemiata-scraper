@@ -155,6 +155,7 @@ new class Smolyan extends BaseWorker {
                     text: text.length > 3500 ? text.substring(0, 3500) : text,
                     date: new Date(date),
                     source_url_id: this.sourceId,
+                    sourceArticle: link,
                 };
 
                 // Push the crawled entity
