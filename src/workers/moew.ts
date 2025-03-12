@@ -115,6 +115,7 @@ new class MoewWorker extends BaseWorker {
                         date: new Date(date.split('.').reverse().join('-')),
                         ...(contractor && { contractor }),
                         source_url_id: sourceId,
+                        sourceArticle: link,
                     };
 
                     // Add the crawled entity to the results array
