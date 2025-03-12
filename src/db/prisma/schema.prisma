@@ -57,11 +57,12 @@ model CrawlTasks {
 
 // Crawled Data model
 model CrawledData {
-  id         BigInt   @id @default(autoincrement())
-  text       String   
-  contractor String?   @db.VarChar(255)
-  date       DateTime
-  created_at DateTime @default(now())
+  id            BigInt   @id @default(autoincrement())
+  text          String   
+  contractor    String?  @db.VarChar(255)
+  sourceArticle String?  @db.VarChar(1024)
+  date          DateTime
+  created_at    DateTime @default(now())
 
   source_url_id BigInt
   SourceUrls    SourceUrls @relation(fields: [source_url_id], references: [id])
