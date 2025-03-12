@@ -122,7 +122,7 @@ export const crawlPendingTasks = async (): Promise<void> => {
                             throw new Error(`Entry at index ${index} is not a valid object.`);
 
                         // Separate required fields from the entry
-                        const { text, source_url_id, date, contractor } = entry;
+                        const { text, source_url_id, date, contractor, sourceArticle} = entry;
 
                         // Check if text field is of type string
                         if (typeof text !== 'string')
@@ -140,8 +140,12 @@ export const crawlPendingTasks = async (): Promise<void> => {
                         if (contractor !== undefined && typeof contractor !== 'string')
                             throw new Error(`Entry at index ${index} has invalid 'contractor' property.`);
 
+                        // Check if sourceArticle field is of type string if it exists
+                        if (sourceArticle !== undefined && typeof sourceArticle !== 'string')
+                            throw new Error(`Entry at index ${index} has invalid 'sourceArticle' property.`);
+
                         // Save the new validated CrawledData object
-                        return { text, source_url_id, date, contractor };
+                        return { text, source_url_id, date, contractor, sourceArticle};
                     });
 
                     // Filter entries to include only those that match keywords
