@@ -71,6 +71,7 @@ new class Blagoevgrad extends BaseWorker {
             let date: string[];
             let text: string;
             let contractor: string;
+            let sourceArticle: string;
 
             // Evaluate the first item
             const res = await firstItem.evaluate((el) => {
@@ -91,19 +92,23 @@ new class Blagoevgrad extends BaseWorker {
                 // Get the date
                 const date = el.querySelector('.published')?.textContent;
 
+                // Get the source article from readmore link
+                const sourceArticle = (el.querySelector('p.readmore a') as HTMLAnchorElement)?.href;
+
                 // Check if the contractor, text or date is not found
                 if (!contractor || !text || !date)
                     throw new Error('Contractor or text not found or date not found');
 
                 // Return the result
-                return { contractor, text, date };
+                return { contractor, text, date, sourceArticle };
 
             })
 
             // Get the date & contractor & text from the result
             date = res.date.toLowerCase().split(" ");
             contractor = res.contractor.split("Възложител:")[1].trim();
-            text = res.text
+            text = res.text;
+            sourceArticle = res.sourceArticle;
 
             // Get the date
             const year = date[3]
@@ -119,6 +124,7 @@ new class Blagoevgrad extends BaseWorker {
                 contractor,
                 date: new Date(dateSting),
                 source_url_id: this.sourceId,
+                sourceArticle,
             };
 
             // Push the crawled entity
@@ -149,18 +155,22 @@ new class Blagoevgrad extends BaseWorker {
                     // Get the date
                     const date = el.querySelector('.published')?.textContent;
 
+                    // Get the source article from readmore link
+                    const sourceArticle = (el.querySelector('p.readmore a') as HTMLAnchorElement)?.href;
+
                     // Check if the contractor, text or date is not found
                     if (!contractor || !text || !date)
                         throw new Error('Contractor, text or date not found');
 
                     // Return the result
-                    return { contractor, text, date };
-                })
+                    return { contractor, text, date, sourceArticle };
+                });
 
                 // Get the date & contractor & text from the result
                 let date: string[] = res.date.toLowerCase().split(" ");
                 let contractor: string = res.contractor.split("Възложител:")[1].trim();
-                let text = res.text
+                let text = res.text;
+                let sourceArticle = res.sourceArticle;
 
                 // Get the date
                 const year = date[3]
@@ -176,6 +186,7 @@ new class Blagoevgrad extends BaseWorker {
                     contractor,
                     date: new Date(dateSting),
                     source_url_id: this.sourceId,
+                    sourceArticle,
                 };
 
                 // Push the crawled entity
