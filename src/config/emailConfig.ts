@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
 // MailConfig class to handle email configuration and sending
 export class MailConfig {
@@ -81,7 +81,6 @@ export class MailConfig {
                 console.error('Failed to send email:', error); // Log the error if sending fails
                 throw error; // Throw the error to be handled by the caller
             }
-        }
-            
+        }   
     }
 }
