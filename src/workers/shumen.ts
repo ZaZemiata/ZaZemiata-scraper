@@ -8,7 +8,7 @@
 // Import dependencies
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
-import { browserOptions } from "../config";
+import { browserOptions } from "../config/browserConfig";
 import WorkerMessage from "../types/workerMessage";
 
 new class Shumen extends BaseWorker {

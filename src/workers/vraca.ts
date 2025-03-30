@@ -1,6 +1,6 @@
 import BaseWorker from "./baseWorker";
 import puppeteer from "puppeteer";
-import { browserOptions } from "../config";
+import { browserOptions } from "../config/browserConfig";
 import { monthsEnum, MonthName } from "../enums/monthsEnum";
 import CrawledDataEntry from "../types/crawledDataEntry";
 import WorkerMessage from "../types/workerMessage";
